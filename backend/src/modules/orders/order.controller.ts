@@ -60,4 +60,14 @@ export class OrderController {
       return res.status(400).json({ error: error.message });
     }
   };
+
+  patchItems = async (req: Request, res: Response) => {
+    try {
+      const { productId, qty } = req.body;
+      const order = await this.orderService.patchOrderItems(req.params.id, productId, Number(qty));
+      return res.status(200).json(order);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  };
 }

@@ -27,8 +27,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Rehydrate from localStorage
-    const storedToken = localStorage.getItem("token");
+    // Rehydrate from cookies or localStorage
+    const cookieToken = document.cookie.split('; ').find(row => row.startsWith('token='))?.split('=')[1];
+    const storedToken = cookieToken || localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
     if (storedToken && storedUser) {
       setToken(storedToken);
@@ -42,17 +43,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { accessToken, refreshToken, user: newUser } = res.data;
     setToken(accessToken);
     setUser(newUser);
+    document.cookie = `token=${accessToken}; path=/; max-age=604800; SameSite=Lax`;
     localStorage.setItem("token", accessToken);
     if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
     localStorage.setItem("user", JSON.stringify(newUser));
-    
-    // Create session
-    try {
-      const sessRes = await api.post("/sessions");
-      localStorage.setItem("sessionId", sessRes.data.sessionId);
-    } catch (e) {
-      // ignore mock errors
-    }
   };
 
   const signup = async (data: { name: string; email: string; password?: string }) => {
@@ -60,6 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { accessToken, refreshToken, user: newUser } = res.data;
     setToken(accessToken);
     setUser(newUser);
+    document.cookie = `token=${accessToken}; path=/; max-age=604800; SameSite=Lax`;
     localStorage.setItem("token", accessToken);
     if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
     localStorage.setItem("user", JSON.stringify(newUser));
@@ -77,6 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     setToken(null);
     setUser(null);
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");

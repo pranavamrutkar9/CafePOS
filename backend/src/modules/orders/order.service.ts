@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { getSocketIO } from '../../socket/index';
+import { getSocketIO, emitToSession } from '../../socket/index';
 import { CouponPromotionService } from '../coupons-promotions/coupon-promotion.service';
 import { calculateOrderTotals } from './order.totals';
 import { sendThankYouEmail } from '../notifications/email';
@@ -88,6 +88,9 @@ export class OrderService {
     const io = getSocketIO();
     if (io) {
       io.emit('table-updated', { tableId: data.tableId, status: 'OCCUPIED' });
+    }
+    if (data.sessionId) {
+      emitToSession(data.sessionId, 'table_occupied', { tableId: data.tableId });
     }
 
     await prisma.table.update({
@@ -212,6 +215,9 @@ export class OrderService {
       const io = getSocketIO();
       if (io) {
         io.emit('table-updated', { tableId: updated.tableId, status: 'AVAILABLE' });
+      }
+      if (updated.sessionId) {
+        emitToSession(updated.sessionId, 'table_available', { tableId: updated.tableId });
       }
 
       // Send the motivational "Thank You" email if it's a successful payment
@@ -366,5 +372,101 @@ export class OrderService {
     }
 
     return updatedTicket;
+  }
+
+  async patchOrderItems(orderId: string, productId: string, qty: number) {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true }
+    });
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id: productId }
+    });
+
+    if (!product) {
+      throw new Error('Product not found');
+    }
+
+    const existingItem = order.items.find(item => item.productId === productId);
+
+    if (qty <= 0) {
+      if (existingItem) {
+        await prisma.kitchenTicketItem.deleteMany({
+          where: { orderItemId: existingItem.id }
+        });
+        await prisma.orderItem.delete({
+          where: { id: existingItem.id }
+        });
+      }
+    } else {
+      if (existingItem) {
+        await prisma.orderItem.update({
+          where: { id: existingItem.id },
+          data: {
+            qty,
+            lineTotal: qty * existingItem.unitPrice
+          }
+        });
+      } else {
+        await prisma.orderItem.create({
+          data: {
+            orderId,
+            productId,
+            qty,
+            unitPrice: product.price,
+            lineTotal: qty * product.price,
+            sentToKitchenAt: null
+          }
+        });
+      }
+    }
+
+    const updatedItems = await prisma.orderItem.findMany({
+      where: { orderId }
+    });
+
+    const totals = await calculateOrderTotals(
+      updatedItems.map(i => ({ productId: i.productId, qty: i.qty, unitPrice: i.unitPrice })),
+      order.couponId
+    );
+
+    for (const item of totals.items) {
+      const dbItem = updatedItems.find(ui => ui.productId === item.productId);
+      if (dbItem) {
+        await prisma.orderItem.update({
+          where: { id: dbItem.id },
+          data: {
+            lineTotal: item.lineTotal,
+            lineDiscount: item.lineDiscount,
+            discountLabel: item.discountLabel
+          }
+        });
+      }
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        subtotal: totals.subtotal,
+        tax: totals.tax,
+        discount: totals.productDiscounts + totals.orderDiscount,
+        discountLabel: totals.discountLabel,
+        total: totals.total
+      },
+      include: {
+        items: {
+          include: { product: true }
+        },
+        table: true,
+        customer: true
+      }
+    });
+
+    return updatedOrder;
   }
 }

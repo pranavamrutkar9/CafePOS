@@ -50,6 +50,18 @@ ROOT
      npm run dev:frontend
      ```
 
+### Second-Screen KDS Demo
+
+To test the Kitchen Display System (KDS) in real-time on a second screen, open:
+* **KDS Dashboard**: [http://localhost:3000/kds](http://localhost:3000/kds)
+
+To simulate a new kitchen ticket being created, run the following command in your terminal while the servers are running:
+```bash
+curl -X POST http://localhost:5000/debug/emit-dummy-ticket
+```
+This triggers a dummy ticket insertion and immediately broadcasts a socket event to the KDS dashboard, updating the active ticket list in real-time without a browser reload.
+
+
 ## Working with Workspace Dependencies
 
 The package `@cafepos/shared-types` contains typescript definitions shared across applications.

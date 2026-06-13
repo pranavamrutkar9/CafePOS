@@ -3,7 +3,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { initSocketIO } from './socket/index';
+import { initSocketIO, emitToKds } from './socket/index';
 import { apiLimiter, authLimiter } from './middleware/rateLimiter';
 
 // Import modular routers
@@ -18,6 +18,7 @@ import couponPromotionRouter from './modules/coupons-promotions/coupon-promotion
 import orderRouter from './modules/orders/order.routes';
 import kdsRouter from './modules/kds/kds.routes';
 import reportsRouter from './modules/reports/reports.routes';
+import sessionRouter from './modules/sessions/session.routes';
 
 dotenv.config();
 
@@ -51,6 +52,23 @@ app.use('/api/coupons-promotions', couponPromotionRouter);
 app.use('/api/orders', orderRouter);
 app.use('/api/kds', kdsRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/sessions', sessionRouter);
+
+// Debug socket ticket emitter route
+app.post('/debug/emit-dummy-ticket', (req, res) => {
+  const dummyTicket = {
+    id: 'dummy-t1',
+    orderNumber: '9999',
+    status: 'TO_COOK',
+    items: [
+      { id: 'di1', name: 'Joy Signature Burger', quantity: 2, isPrepared: false },
+      { id: 'di2', name: 'Iced Peach Tea', quantity: 1, isPrepared: true }
+    ],
+    createdAt: new Date().toISOString()
+  };
+  emitToKds('kitchen_ticket_created', dummyTicket);
+  return res.status(200).json({ message: 'Dummy ticket emitted to KDS room', ticket: dummyTicket });
+});
 
 // Initialize socket.io connection handlers
 initSocketIO(io);

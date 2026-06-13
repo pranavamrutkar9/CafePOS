@@ -10,5 +10,6 @@ const controller = new CustomerController();
 router.get('/', authenticateJWT, controller.getAll);
 router.post('/', authenticateJWT, controller.create);
 router.put('/:id', authenticateJWT, controller.update);
+router.delete('/:id', authenticateJWT, controller.delete);
 
 export default router;

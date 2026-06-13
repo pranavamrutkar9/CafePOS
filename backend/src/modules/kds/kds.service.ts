@@ -59,6 +59,50 @@ export class KdsService {
     return ticket;
   }
 
+  async advanceTicket(id: string) {
+    const ticket = await prisma.kitchenTicket.findUnique({ where: { id } });
+    if (!ticket) throw new Error('Ticket not found');
+    let nextStatus = ticket.status;
+    if (ticket.status === 'TO_COOK') nextStatus = 'PREPARING';
+    else if (ticket.status === 'PREPARING') nextStatus = 'COMPLETED';
+    
+    return this.updateTicket(id, nextStatus);
+  }
+
+  async updateTicketItem(ticketId: string, itemId: string, completed: boolean) {
+    const item = await prisma.kitchenTicketItem.update({
+      where: { id: itemId },
+      data: { completed },
+      include: {
+        ticket: {
+          include: {
+            order: {
+              include: {
+                table: true,
+                employee: true,
+              },
+            },
+            items: {
+              include: {
+                orderItem: {
+                  include: {
+                    product: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const io = getSocketIO();
+    if (io) {
+      io.emit('ticket-updated', item.ticket);
+    }
+    return item.ticket;
+  }
+
   async getLoad() {
     const AVG_PREP_MINUTES_PER_ITEM = 3;
 

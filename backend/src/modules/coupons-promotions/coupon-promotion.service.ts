@@ -21,6 +21,32 @@ export class CouponPromotionService {
     return prisma.promotion.create({ data });
   }
 
+  async updateCoupon(id: string, data: any) {
+    return prisma.coupon.update({
+      where: { id },
+      data
+    });
+  }
+
+  async deleteCoupon(id: string) {
+    return prisma.coupon.delete({
+      where: { id }
+    });
+  }
+
+  async updatePromotion(id: string, data: any) {
+    return prisma.promotion.update({
+      where: { id },
+      data
+    });
+  }
+
+  async deletePromotion(id: string) {
+    return prisma.promotion.delete({
+      where: { id }
+    });
+  }
+
   async getActivePromotions() {
     const all = await prisma.promotion.findMany({
       where: { active: true },

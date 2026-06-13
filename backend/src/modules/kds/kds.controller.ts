@@ -25,6 +25,26 @@ export class KdsController {
     }
   };
 
+  advance = async (req: Request, res: Response) => {
+    try {
+      const ticket = await this.kdsService.advanceTicket(req.params.id);
+      return res.status(200).json(ticket);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  };
+
+  updateItemStatus = async (req: Request, res: Response) => {
+    try {
+      const { completed } = req.body;
+      const { id, itemId } = req.params;
+      const ticket = await this.kdsService.updateTicketItem(id, itemId, completed === true);
+      return res.status(200).json(ticket);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  };
+
   getLoad = async (req: Request, res: Response) => {
     try {
       const load = await this.kdsService.getLoad();

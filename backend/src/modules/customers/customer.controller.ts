@@ -8,7 +8,8 @@ export class CustomerController {
 
   getAll = async (req: Request, res: Response) => {
     try {
-      const customers = await this.customerService.getAllCustomers();
+      const search = req.query.search as string | undefined;
+      const customers = await this.customerService.getAllCustomers(search);
       return res.status(200).json(customers);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
@@ -28,6 +29,15 @@ export class CustomerController {
     try {
       const customer = await this.customerService.updateCustomer(req.params.id, req.body);
       return res.status(200).json(customer);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  };
+
+  delete = async (req: Request, res: Response) => {
+    try {
+      await this.customerService.deleteCustomer(req.params.id);
+      return res.status(204).send();
     } catch (error: any) {
       return res.status(400).json({ error: error.message });
     }

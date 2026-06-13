@@ -23,4 +23,22 @@ export class PaymentMethodController {
       return res.status(400).json({ error: error.message });
     }
   };
+
+  update = async (req: Request, res: Response) => {
+    try {
+      const method = await this.paymentMethodService.updateMethod(req.params.id, req.body);
+      return res.status(200).json(method);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  };
+
+  delete = async (req: Request, res: Response) => {
+    try {
+      await this.paymentMethodService.deleteMethod(req.params.id);
+      return res.status(204).send();
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  };
 }

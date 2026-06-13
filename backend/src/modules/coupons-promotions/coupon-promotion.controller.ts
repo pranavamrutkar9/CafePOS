@@ -48,4 +48,40 @@ export class CouponPromotionController {
       return res.status(400).json({ error: error.message });
     }
   };
+
+  updateCoupon = async (req: Request, res: Response) => {
+    try {
+      const coupon = await this.couponPromotionService.updateCoupon(req.params.id, req.body);
+      return res.status(200).json(coupon);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  };
+
+  deleteCoupon = async (req: Request, res: Response) => {
+    try {
+      await this.couponPromotionService.deleteCoupon(req.params.id);
+      return res.status(204).send();
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  };
+
+  updatePromotion = async (req: Request, res: Response) => {
+    try {
+      const promotion = await this.couponPromotionService.updatePromotion(req.params.id, req.body);
+      return res.status(200).json(promotion);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  };
+
+  deletePromotion = async (req: Request, res: Response) => {
+    try {
+      await this.couponPromotionService.deletePromotion(req.params.id);
+      return res.status(204).send();
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  };
 }

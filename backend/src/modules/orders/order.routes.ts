@@ -12,6 +12,7 @@ router.get('/:id', authenticateJWT, controller.getById);
 router.post('/voice-parse', authenticateJWT, controller.parseVoiceOrder);
 router.post('/', authenticateJWT, controller.create);
 router.put('/:id', authenticateJWT, controller.update);
+router.patch('/:id/items', authenticateJWT, controller.patchItems);
 router.post('/:id/send-to-kitchen', authenticateJWT, controller.sendToKitchen);
 
 export default router;
