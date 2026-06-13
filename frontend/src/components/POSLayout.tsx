@@ -4,22 +4,26 @@ import { useState } from "react";
 import Link from "next/link";
 import { Search, ShoppingCart, List, PlusSquare, LayoutGrid, User, Menu, LogOut, Package, Tags, CreditCard, Gift, Users, Monitor, BarChart } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { usePOSStore } from "@/store/usePOSStore";
 import PrivateRoute from "./PrivateRoute";
+import TableSelectionModal from "./TableSelectionModal";
 
 export default function POSLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const { selectedTable, setTableModalOpen } = usePOSStore();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Table view info placeholder
-  const floorName = "Main Floor";
-  const tableNumber = "12";
+  const floorName = selectedTable?.floorName || "Select";
+  const tableNumber = selectedTable?.tableNumber || "Table";
 
   return (
     <PrivateRoute>
-      <div className="flex flex-col min-h-screen bg-cafe-bg text-cafe-text">
+      <div className="flex flex-col min-h-screen bg-cafe-bg text-cafe-text relative">
+        <TableSelectionModal />
+        
         {/* Top Navbar */}
-        <header className="h-16 bg-cafe-card border-b border-gray-700 flex items-center justify-between px-4 sticky top-0 z-50 shadow-md">
+        <header className="h-16 bg-cafe-card border-b border-gray-700 flex items-center justify-between px-4 sticky top-0 z-40 shadow-md">
           {/* Logo */}
           <Link href="/pos" className="flex items-center gap-2 font-bold text-xl text-cafe-primary shrink-0 mr-4">
             <span className="hidden sm:inline">CafePOS</span>
@@ -56,10 +60,15 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
             </button>
 
             {/* Table View Indicator */}
-            <div className="hidden sm:flex items-center gap-2 bg-[#1e1e1e] px-3 py-1.5 rounded-lg border border-gray-600">
+            <button 
+              onClick={() => setTableModalOpen(true)}
+              className="hidden sm:flex items-center gap-2 bg-[#1e1e1e] px-3 py-1.5 rounded-lg border border-gray-600 hover:border-cafe-primary transition-colors"
+            >
               <LayoutGrid size={16} className="text-cafe-primary" />
-              <span className="text-xs font-medium text-gray-200">{floorName} - T{tableNumber}</span>
-            </div>
+              <span className="text-xs font-medium text-gray-200">
+                {selectedTable ? `${floorName} - T${tableNumber}` : "Select Table"}
+              </span>
+            </button>
 
             {/* Avatar */}
             <div className="w-8 h-8 rounded-full bg-cafe-primary flex items-center justify-center font-bold text-sm select-none text-white">
