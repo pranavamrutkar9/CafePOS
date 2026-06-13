@@ -26,44 +26,44 @@ export default function ReceiptModal({ isOpen, onClose, orderNumber, amount }: R
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-cafe-card w-full max-w-sm rounded-2xl shadow-2xl border border-gray-700 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-white w-full max-w-sm rounded-3xl border border-[#efece7] shadow-2xl flex flex-col overflow-hidden relative before:absolute before:inset-2 before:border before:border-[#fbfaf8] before:rounded-[1.4rem] before:pointer-events-none">
         
         {/* Header */}
-        <div className="p-6 pb-4 flex flex-col items-center justify-center text-center border-b border-gray-700">
-          <CheckCircle2 size={48} className="text-green-500 mb-3" />
-          <h2 className="text-2xl font-bold text-white">Payment Successful</h2>
-          <p className="text-gray-400 mt-1">Order #{orderNumber}</p>
-          <p className="text-3xl font-black text-white mt-3">${amount.toFixed(2)}</p>
+        <div className="p-6 pb-4 flex flex-col items-center justify-center text-center border-b border-[#efece7]">
+          <CheckCircle2 size={48} className="text-[#557a61] mb-3 animate-bounce" />
+          <h2 className="text-2xl font-extrabold text-[#2c2623]">Payment Successful</h2>
+          <p className="text-[#8e827b] text-sm font-semibold mt-1">Order #{orderNumber}</p>
+          <p className="text-3xl font-black text-[#c86a50] mt-3">${amount.toFixed(2)}</p>
         </div>
 
         {/* Actions */}
         <div className="p-6 flex flex-col gap-3">
-          <button className="flex items-center justify-center gap-2 w-full py-3 bg-[#1e1e1e] hover:bg-gray-700 text-white rounded-xl font-medium border border-gray-600 transition-colors">
+          <button className="flex items-center justify-center gap-2 w-full py-3 bg-[#faf8f5] hover:bg-[#efece7] border border-[#e6e1da] text-[#2c2623] rounded-xl font-bold text-sm transition-colors cursor-pointer">
             <Printer size={18} /> Print Receipt
           </button>
           
           {!showEmailInput ? (
             <button 
               onClick={() => setShowEmailInput(true)}
-              className="flex items-center justify-center gap-2 w-full py-3 bg-[#1e1e1e] hover:bg-gray-700 text-white rounded-xl font-medium border border-gray-600 transition-colors"
+              className="flex items-center justify-center gap-2 w-full py-3 bg-[#faf8f5] hover:bg-[#efece7] border border-[#e6e1da] text-[#2c2623] rounded-xl font-bold text-sm transition-colors cursor-pointer"
             >
               <Mail size={18} /> Send via Email
             </button>
           ) : (
-            <div className="flex flex-col gap-2 p-3 bg-[#1e1e1e] border border-gray-600 rounded-xl animate-in slide-in-from-top-2">
-              <label className="text-xs text-gray-400 font-medium">Customer Email</label>
+            <div className="flex flex-col gap-2 p-3 bg-[#faf8f5] border border-[#efece7] rounded-xl animate-in slide-in-from-top-2">
+              <label className="text-xs text-[#8e827b] font-bold uppercase tracking-wider">Customer Email</label>
               <div className="flex gap-2">
                 <input 
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="customer@example.com"
-                  className="flex-1 bg-[#2a2a2a] border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cafe-primary"
+                  className="flex-1 bg-white border border-[#e6e1da] rounded-lg px-3 py-2 text-sm text-[#2c2623] placeholder-[#a09690] focus:outline-none focus:border-[#c86a50]"
                 />
                 <button 
                   onClick={handleSendEmail}
-                  className="bg-cafe-primary hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  className="bg-[#557a61] hover:bg-[#43634e] text-white px-4 py-2 rounded-lg text-xs font-bold transition-colors cursor-pointer"
                 >
                   {sent ? "Sent!" : "Send"}
                 </button>
@@ -73,7 +73,7 @@ export default function ReceiptModal({ isOpen, onClose, orderNumber, amount }: R
 
           <button 
             onClick={onClose}
-            className="mt-2 flex items-center justify-center gap-2 w-full py-3 bg-cafe-primary hover:bg-red-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-cafe-primary/20"
+            className="mt-2 flex items-center justify-center gap-2 w-full py-3.5 btn-terracotta text-white rounded-xl font-bold text-sm transition-colors shadow-md cursor-pointer"
           >
             New Order
           </button>

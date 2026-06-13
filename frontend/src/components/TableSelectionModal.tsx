@@ -51,30 +51,30 @@ export default function TableSelectionModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm">
-      <div className="bg-cafe-card w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-full overflow-hidden border border-gray-700 animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-sm">
+      <div className="bg-white w-full max-w-4xl rounded-[2rem] shadow-2xl flex flex-col max-h-full overflow-hidden border border-[#efece7] animate-in fade-in zoom-in-95 duration-200 relative before:absolute before:inset-2 before:border before:border-[#fbfaf8] before:rounded-[1.8rem] before:pointer-events-none">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-700">
-          <h2 className="text-2xl font-bold text-cafe-text">Select Table</h2>
+        <div className="flex items-center justify-between p-6 border-b border-[#efece7] relative z-10">
+          <h2 className="text-2xl font-extrabold text-[#2c2623]">Select Table</h2>
           <button 
             onClick={() => setTableModalOpen(false)}
-            className="p-2 hover:bg-gray-700 rounded-full transition-colors text-gray-400 hover:text-white"
+            className="p-2 hover:bg-[#faf8f5] rounded-full transition-colors text-[#8e827b] hover:text-[#2c2623] cursor-pointer"
           >
             <X size={24} />
           </button>
         </div>
 
         {/* Floor Tabs */}
-        <div className="flex overflow-x-auto border-b border-gray-700 px-6 py-2 gap-2 hide-scrollbar">
+        <div className="flex overflow-x-auto border-b border-[#efece7] bg-[#faf8f5] px-6 py-3.5 gap-2 hide-scrollbar relative z-10">
           {FLOORS.map((floor) => (
             <button
               key={floor.id}
               onClick={() => setActiveFloorId(floor.id)}
-              className={`px-6 py-3 rounded-lg font-medium whitespace-nowrap transition-colors ${
+              className={`px-6 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                 activeFloorId === floor.id
-                  ? "bg-cafe-primary text-white"
-                  : "bg-[#1e1e1e] text-gray-400 hover:bg-gray-700 hover:text-gray-200"
+                  ? "bg-[#c86a50] text-white shadow-sm"
+                  : "bg-white text-[#8e827b] border border-[#e6e1da] hover:bg-[#faf8f5] hover:text-[#2c2623]"
               }`}
             >
               {floor.name}
@@ -83,25 +83,25 @@ export default function TableSelectionModal() {
         </div>
 
         {/* Tables Grid */}
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="p-6 overflow-y-auto flex-1 bg-white relative z-10 organic-scrollbar">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {activeFloor.tables.map((table) => (
               <button
                 key={table.id}
                 onClick={() => handleTableSelect(table, activeFloor.name)}
-                className={`relative aspect-square rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-95 border ${
+                className={`relative aspect-square rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 transition-transform hover:scale-[1.02] active:scale-95 border cursor-pointer ${
                   table.isActiveOrder
-                    ? "bg-cafe-danger/20 border-cafe-danger text-cafe-danger"
-                    : "bg-[#1e1e1e] border-gray-700 text-cafe-text hover:border-gray-500"
+                    ? "bg-[#d3524b]/8 border-[#d3524b]/30 text-[#d3524b]"
+                    : "bg-[#faf8f5] border-[#efece7] text-[#2c2623] hover:border-[#8e827b] hover:bg-white"
                 }`}
               >
-                <span className="text-3xl font-bold">T{table.number}</span>
-                <div className="flex items-center gap-1 text-sm opacity-80">
-                  <Users size={16} />
-                  <span>{table.seats}</span>
+                <span className="text-2xl font-black">T{table.number}</span>
+                <div className="flex items-center gap-1 text-xs opacity-75">
+                  <Users size={14} />
+                  <span>{table.seats} Seats</span>
                 </div>
                 {table.isActiveOrder && (
-                  <span className="absolute top-2 right-2 w-3 h-3 rounded-full bg-cafe-danger shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse"></span>
+                  <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-[#d3524b] shadow-[0_0_8px_rgba(211,82,75,0.6)] animate-pulse"></span>
                 )}
               </button>
             ))}

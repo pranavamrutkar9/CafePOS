@@ -64,7 +64,7 @@ export class CouponPromotionService {
       if (promo.scope === 'PRODUCT' && promo.productId && promo.minQty) {
         const item = updatedItems.find(i => i.productId === promo.productId);
         if (item && item.qty >= promo.minQty) {
-          const discount = promo.type === 'PERCENTAGE'
+          const discount = (promo.type === 'PERCENT' || promo.type === 'PERCENTAGE')
             ? item.lineTotal * (promo.value / 100)
             : promo.value;
           item.lineDiscount = discount;
@@ -74,7 +74,7 @@ export class CouponPromotionService {
 
       // ORDER_AMOUNT trigger
       if (promo.scope === 'ORDER' && promo.minAmount && subtotal >= promo.minAmount) {
-        orderDiscount += promo.type === 'PERCENTAGE'
+        orderDiscount += (promo.type === 'PERCENT' || promo.type === 'PERCENTAGE')
           ? subtotal * (promo.value / 100)
           : promo.value;
       }

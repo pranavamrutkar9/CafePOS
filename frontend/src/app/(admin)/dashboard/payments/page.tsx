@@ -8,73 +8,77 @@ export default function PaymentMethodsPage() {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Payment Methods</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-cafe-text">Payment Methods</h1>
       </div>
 
       <div className="space-y-4">
         {/* Cash */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-start gap-4">
-          <div className="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center shrink-0">
-            <Banknote size={24} />
+        <div className="bg-white rounded-xl border border-[#EFECE7] shadow-xs p-6 flex items-start gap-4 hover:border-[#ebdcd0] transition-colors">
+          <div className="w-12 h-12 bg-[#557A61]/10 text-cafe-success rounded-xl flex items-center justify-center shrink-0">
+            <Banknote size={22} />
           </div>
           <div className="flex-1">
             <div className="flex justify-between items-center mb-1">
-              <h3 className="font-bold text-gray-900 text-lg">Cash</h3>
+              <h3 className="font-bold text-cafe-text text-base">Cash</h3>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" defaultChecked />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                <div className="w-11 h-6 bg-[#E6E1DA] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cafe-success"></div>
               </label>
             </div>
-            <p className="text-gray-500 text-sm">Accept physical cash payments. Terminal will calculate change due.</p>
+            <p className="text-[#8E827B] text-sm">Accept physical cash payments. The terminal will calculate change due.</p>
           </div>
         </div>
 
         {/* Digital/Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-start gap-4">
-          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
-            <CreditCard size={24} />
+        <div className="bg-white rounded-xl border border-[#EFECE7] shadow-xs p-6 flex items-start gap-4 hover:border-[#ebdcd0] transition-colors">
+          <div className="w-12 h-12 bg-[#5076a8]/10 text-[#5076a8] rounded-xl flex items-center justify-center shrink-0">
+            <CreditCard size={22} />
           </div>
           <div className="flex-1">
             <div className="flex justify-between items-center mb-1">
-              <h3 className="font-bold text-gray-900 text-lg">Digital / Card</h3>
+              <h3 className="font-bold text-cafe-text text-base">Digital / Card</h3>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                <div className="w-11 h-6 bg-[#E6E1DA] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cafe-success"></div>
               </label>
             </div>
-            <p className="text-gray-500 text-sm">Process credit and debit cards via external terminal.</p>
+            <p className="text-[#8E827B] text-sm">Process credit and debit cards via external terminal.</p>
           </div>
         </div>
 
         {/* UPI QR */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-start gap-4 transition-all">
-          <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0">
-            <QrCode size={24} />
+        <div className="bg-white rounded-xl border border-[#EFECE7] shadow-xs p-6 flex items-start gap-4 hover:border-[#ebdcd0] transition-colors">
+          <div className="w-12 h-12 bg-[#C86A50]/10 text-cafe-primary rounded-xl flex items-center justify-center shrink-0">
+            <QrCode size={22} />
           </div>
           <div className="flex-1">
             <div className="flex justify-between items-center mb-1">
-              <h3 className="font-bold text-gray-900 text-lg">UPI QR</h3>
+              <h3 className="font-bold text-cafe-text text-base">UPI QR</h3>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" checked={upiEnabled} onChange={(e) => setUpiEnabled(e.target.checked)} />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                <div className="w-11 h-6 bg-[#E6E1DA] rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cafe-success"></div>
               </label>
             </div>
-            <p className="text-gray-500 text-sm mb-4">Dynamically generate UPI QR codes for customers to scan and pay.</p>
+            <p className="text-[#8E827B] text-sm">Dynamically generate UPI QR codes for customers to scan and pay.</p>
             
             {upiEnabled && (
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 animate-in fade-in slide-in-from-top-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Merchant UPI ID</label>
-                <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cafe-primary bg-white" placeholder="e.g. cafe@ybl" />
-                <p className="text-xs text-gray-500 mt-2">QR code will be generated dynamically at checkout using this ID.</p>
+              <div className="bg-[#FAF8F5] p-4 rounded-xl border border-[#EFECE7] animate-in fade-in slide-in-from-top-4 mt-4">
+                <label className="block text-xs font-semibold text-[#8E827B] uppercase tracking-wider mb-2">Merchant UPI ID</label>
+                <input 
+                  type="text" 
+                  className="w-full px-3.5 py-2.5 bg-white paper-input rounded-xl focus:outline-none" 
+                  placeholder="e.g. cafe@ybl" 
+                />
+                <p className="text-xs text-[#8E827B] mt-2">QR code will be generated dynamically at checkout using this ID.</p>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      <div className="pt-4 border-t border-gray-200 flex justify-end">
-        <button className="bg-cafe-primary hover:bg-cafe-primary-hover text-white px-6 py-2.5 rounded-lg font-medium transition-colors">
+      <div className="pt-4 border-t border-[#EFECE7] flex justify-end">
+        <button className="btn-terracotta px-6 py-2.5 rounded-xl font-medium cursor-pointer">
           Save Changes
         </button>
       </div>

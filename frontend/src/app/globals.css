@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cafe-primary: #c0392b;
-  --color-cafe-primary-hover: #a93226;
-  --color-cafe-bg: #1a1a1a;
-  --color-cafe-card: #2a2a2a;
-  --color-cafe-text: #f3f4f6;
-  --color-cafe-success: #10B981;
-  --color-cafe-warning: #F59E0B;
-  --color-cafe-danger: #EF4444;
-  --color-cafe-info: #3B82F6;
+  --color-cafe-primary: #c86a50;
+  --color-cafe-primary-hover: #b3563d;
+  --color-cafe-bg: #faf8f5;
+  --color-cafe-card: #ffffff;
+  --color-cafe-text: #2c2623;
+  --color-cafe-success: #557a61;
+  --color-cafe-warning: #d99c4c;
+  --color-cafe-danger: #d3524b;
+  --color-cafe-info: #5076a8;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -19,3 +19,103 @@
     color: var(--color-cafe-text);
   }
 }
+
+/* Boutique Warm Light UI Utilities */
+.paper-panel {
+  background: #ffffff;
+  border: 1px solid #efece7;
+  box-shadow: 0 10px 40px -6px rgba(44, 38, 35, 0.035);
+}
+
+.paper-card {
+  background: #ffffff;
+  border: 1px solid #f2efea;
+  box-shadow: 0 4px 20px -2px rgba(44, 38, 35, 0.02);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.paper-card:hover {
+  transform: translateY(-2px);
+  border-color: #ebdcd0;
+  box-shadow: 0 8px 30px -4px rgba(44, 38, 35, 0.045);
+}
+
+.paper-input {
+  background: #faf8f5;
+  border: 1px solid #e6e1da;
+  color: #2c2623;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.paper-input:focus {
+  background: #ffffff;
+  border-color: #c86a50;
+  box-shadow: 0 0 0 3px rgba(200, 106, 80, 0.1);
+  outline: none;
+}
+
+.btn-terracotta {
+  background: #c86a50;
+  color: #ffffff;
+  box-shadow: 0 3px 12px rgba(200, 106, 80, 0.2);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-terracotta:hover:not(:disabled) {
+  background: #b3563d;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(200, 106, 80, 0.3);
+}
+
+.btn-terracotta:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Organic Status Badges */
+.badge-sage {
+  background: rgba(85, 122, 97, 0.08);
+  border: 1px solid rgba(85, 122, 97, 0.15);
+  color: #43634e;
+}
+
+.badge-terracotta {
+  background: rgba(200, 106, 80, 0.08);
+  border: 1px solid rgba(200, 106, 80, 0.15);
+  color: #a44f38;
+}
+
+.badge-warning {
+  background: rgba(217, 156, 76, 0.08);
+  border: 1px solid rgba(217, 156, 76, 0.15);
+  color: #ad742b;
+}
+
+/* Scrollbar utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.organic-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.organic-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.organic-scrollbar::-webkit-scrollbar-thumb {
+  background: #e6e1da;
+  border-radius: 99px;
+}
+
+.organic-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #ebdcd0;
+}
+
+

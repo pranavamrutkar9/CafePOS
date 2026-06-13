@@ -6,10 +6,10 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
-
 // Removed enum Role
 
 model User {
@@ -67,18 +67,20 @@ model Table {
   floor     Floor       @relation(fields: [floorId], references: [id])
   status    String      @default("AVAILABLE")
   orders    Order[]
+  bookings  Booking[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 }
 
 model Customer {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
-  email     String?  @unique
+  email     String?   @unique
   phone     String?
   orders    Order[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 // Removed enum PaymentType
@@ -141,6 +143,10 @@ model Order {
   total          Float
   couponId       String?
   coupon         Coupon?         @relation(fields: [couponId], references: [id])
+  sessionId      String?
+  session        Session?        @relation(fields: [sessionId], references: [id])
+  discountLabel  String?
+  paymentMethod  String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   items          OrderItem[]
@@ -148,18 +154,20 @@ model Order {
 }
 
 model OrderItem {
-  id           String              @id @default(uuid())
-  orderId      String
-  order        Order               @relation(fields: [orderId], references: [id])
-  productId    String
-  product      Product             @relation(fields: [productId], references: [id])
-  qty          Int
-  unitPrice    Float
-  lineTotal    Float
-  lineDiscount Float               @default(0)
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  kitchenItems KitchenTicketItem[]
+  id              String              @id @default(uuid())
+  orderId         String
+  order           Order               @relation(fields: [orderId], references: [id])
+  productId       String
+  product         Product             @relation(fields: [productId], references: [id])
+  qty             Int
+  unitPrice       Float
+  lineTotal       Float
+  lineDiscount    Float               @default(0)
+  discountLabel   String?
+  sentToKitchenAt DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  kitchenItems    KitchenTicketItem[]
 }
 
 // Removed enum TicketStatus
@@ -192,6 +200,20 @@ model Session {
   openedAt      DateTime  @default(now())
   closedAt      DateTime?
   closingAmount Float?
+  openingCash   Float     @default(0)
+  closingCash   Float?
+  status        String    @default("OPEN")
+  orders        Order[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+model Booking {
+  id         String    @id @default(uuid())
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  tableId    String?
+  table      Table?    @relation(fields: [tableId], references: [id])
+  datetime   DateTime
+  status     String    @default("PENDING")
 }

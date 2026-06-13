@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { getSocketIO } from '../../socket/index';
 import { CouponPromotionService } from '../coupons-promotions/coupon-promotion.service';
+import { calculateOrderTotals } from './order.totals';
 
 const prisma = new PrismaClient();
 
@@ -40,29 +41,36 @@ export class OrderService {
   }
 
   async createOrder(data: any) {
-    const promoService = new CouponPromotionService();
-    const { items: promoItems, orderDiscount } = await promoService.applyPromotionsToCart(data.items, data.subtotal);
-    
-    const finalDiscount = (data.discount || 0) + orderDiscount;
-    const finalTotal = data.subtotal + data.tax - finalDiscount;
+    if (data.paymentMethod && !['CASH', 'CARD', 'UPI'].includes(data.paymentMethod)) {
+      throw new Error('Invalid payment method. Must be one of CASH, CARD, or UPI.');
+    }
+
+    // Use our database-backed calculator for accurate totals and promo stacking
+    const totals = await calculateOrderTotals(data.items, data.couponId);
 
     const order = await prisma.order.create({
       data: {
         tableId: data.tableId,
         customerId: data.customerId,
         employeeId: data.employeeId,
-        status: 'DRAFT',
-        subtotal: data.subtotal,
-        tax: data.tax,
-        discount: finalDiscount,
-        total: finalTotal,
+        sessionId: data.sessionId,
+        status: data.status || 'DRAFT',
+        subtotal: totals.subtotal,
+        tax: totals.tax,
+        discount: totals.productDiscounts + totals.orderDiscount,
+        discountLabel: totals.discountLabel,
+        total: totals.total,
+        couponId: data.couponId,
+        paymentMethod: data.paymentMethod,
         items: {
-          create: promoItems.map((item: any) => ({
+          create: totals.items.map((item: any) => ({
             productId: item.productId,
             qty: item.qty,
             unitPrice: item.unitPrice,
             lineTotal: item.lineTotal,
             lineDiscount: item.lineDiscount,
+            discountLabel: item.discountLabel,
+            sentToKitchenAt: null, // Stamped by sendOrderToKitchen below
           })),
         },
       },
@@ -72,39 +80,15 @@ export class OrderService {
       },
     });
 
-    // Create a kitchen ticket
-    const ticket = await prisma.kitchenTicket.create({
-      data: {
-        orderId: order.id,
-        status: 'TO_COOK',
-        items: {
-          create: order.items.map((item) => ({
-            orderItemId: item.id,
-            completed: false,
-          })),
-        },
-      },
-      include: {
-        order: {
-          include: { table: true }
-        },
-        items: {
-          include: {
-            orderItem: { include: { product: true } }
-          }
-        }
-      }
-    });
+    // Auto send to kitchen
+    await this.sendOrderToKitchen(order.id);
 
-    // Broadcast new ticket to KDS
+    // Update table status if table is OCCUPIED
     const io = getSocketIO();
     if (io) {
-      io.emit('new-ticket', ticket);
-      // Update table status if needed
       io.emit('table-updated', { tableId: data.tableId, status: 'OCCUPIED' });
     }
 
-    // Update table status
     await prisma.table.update({
       where: { id: data.tableId },
       data: { status: 'OCCUPIED' },
@@ -114,14 +98,111 @@ export class OrderService {
   }
 
   async updateOrder(id: string, data: any) {
+    if (data.paymentMethod && !['CASH', 'CARD', 'UPI'].includes(data.paymentMethod)) {
+      throw new Error('Invalid payment method. Must be one of CASH, CARD, or UPI.');
+    }
+
+    const currentOrder = await prisma.order.findUnique({
+      where: { id },
+      include: { items: true }
+    });
+
+    if (!currentOrder) {
+      throw new Error('Order not found');
+    }
+
+    // 1. If items are provided in update, sync them
+    if (data.items) {
+      const incomingItems = data.items;
+      const incomingIds = incomingItems.map((i: any) => i.id).filter(Boolean);
+
+      // Delete items not in incoming list
+      const itemsToDelete = currentOrder.items.filter(ci => !incomingIds.includes(ci.id));
+      if (itemsToDelete.length > 0) {
+        const deleteIds = itemsToDelete.map(i => i.id);
+        await prisma.kitchenTicketItem.deleteMany({
+          where: { orderItemId: { in: deleteIds } }
+        });
+        await prisma.orderItem.deleteMany({
+          where: { id: { in: deleteIds } }
+        });
+      }
+
+      // Create or update items
+      for (const item of incomingItems) {
+        if (item.id) {
+          await prisma.orderItem.update({
+            where: { id: item.id },
+            data: {
+              qty: item.qty,
+              unitPrice: item.unitPrice,
+              lineTotal: item.qty * item.unitPrice,
+            }
+          });
+        } else {
+          await prisma.orderItem.create({
+            data: {
+              orderId: id,
+              productId: item.productId,
+              qty: item.qty,
+              unitPrice: item.unitPrice,
+              lineTotal: item.qty * item.unitPrice,
+              sentToKitchenAt: null
+            }
+          });
+        }
+      }
+    }
+
+    // Refetch updated items for calculation
+    const updatedItems = await prisma.orderItem.findMany({
+      where: { orderId: id }
+    });
+
+    const couponId = data.couponId !== undefined ? data.couponId : currentOrder.couponId;
+    const totals = await calculateOrderTotals(
+      updatedItems.map(i => ({ productId: i.productId, qty: i.qty, unitPrice: i.unitPrice })),
+      couponId
+    );
+
+    // Save line-level discounts back to DB
+    for (const item of totals.items) {
+      const dbItem = updatedItems.find(ui => ui.productId === item.productId);
+      if (dbItem) {
+        await prisma.orderItem.update({
+          where: { id: dbItem.id },
+          data: {
+            lineTotal: item.lineTotal,
+            lineDiscount: item.lineDiscount,
+            discountLabel: item.discountLabel
+          }
+        });
+      }
+    }
+
+    // 2. Update order document with new totals and other attributes
     const updated = await prisma.order.update({
       where: { id },
       data: {
-        status: data.status,
+        status: data.status !== undefined ? data.status : currentOrder.status,
+        subtotal: totals.subtotal,
+        tax: totals.tax,
+        discount: totals.productDiscounts + totals.orderDiscount,
+        discountLabel: totals.discountLabel,
+        total: totals.total,
+        couponId: couponId,
+        sessionId: data.sessionId !== undefined ? data.sessionId : currentOrder.sessionId,
+        paymentMethod: data.paymentMethod !== undefined ? data.paymentMethod : currentOrder.paymentMethod
       },
+      include: {
+        items: true,
+        table: true
+      }
     });
 
-    if (data.status === 'PAID' || data.status === 'CANCELLED') {
+    // Handle status changes for table occupancy
+    const targetStatus = data.status || updated.status;
+    if (targetStatus === 'PAID' || targetStatus === 'CANCELLED') {
       await prisma.table.update({
         where: { id: updated.tableId },
         data: { status: 'AVAILABLE' },
@@ -191,5 +272,92 @@ export class OrderService {
     }
 
     return foundItems;
+  }
+
+  async sendOrderToKitchen(orderId: string) {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { items: true, kitchenTickets: { include: { items: true } } }
+    });
+
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    // Filter items where sentToKitchenAt is null
+    const unsentItems = order.items.filter(item => item.sentToKitchenAt === null);
+
+    if (unsentItems.length === 0) {
+      // Nothing new to send
+      return order.kitchenTickets[0] || null;
+    }
+
+    const now = new Date();
+
+    // Stamp sentToKitchenAt on unsent items
+    await prisma.orderItem.updateMany({
+      where: {
+        id: { in: unsentItems.map(item => item.id) }
+      },
+      data: {
+        sentToKitchenAt: now
+      }
+    });
+
+    // Find existing ticket
+    let ticket: any = order.kitchenTickets[0];
+
+    if (ticket) {
+      // Add new items to the existing kitchen ticket and set status back to TO_COOK
+      await prisma.kitchenTicket.update({
+        where: { id: ticket.id },
+        data: {
+          status: 'TO_COOK',
+          items: {
+            create: unsentItems.map(item => ({
+              orderItemId: item.id,
+              completed: false
+            }))
+          }
+        }
+      });
+    } else {
+      // Create a new kitchen ticket
+      ticket = await prisma.kitchenTicket.create({
+        data: {
+          orderId: order.id,
+          status: 'TO_COOK',
+          items: {
+            create: unsentItems.map(item => ({
+              orderItemId: item.id,
+              completed: false
+            }))
+          }
+        }
+      });
+    }
+
+    // Fetch full ticket details for broadcasting
+    const updatedTicket = await prisma.kitchenTicket.findUnique({
+      where: { id: ticket.id },
+      include: {
+        order: {
+          include: { table: true }
+        },
+        items: {
+          include: {
+            orderItem: { include: { product: true } }
+          }
+        }
+      }
+    });
+
+    const io = getSocketIO();
+    if (io) {
+      io.emit('new-ticket', updatedTicket);
+      io.emit('ticket-updated', updatedTicket);
+    }
+
+    return updatedTicket;
   }
 }

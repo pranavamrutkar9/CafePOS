@@ -51,4 +51,13 @@ export class OrderController {
       return res.status(400).json({ error: error.message });
     }
   };
+
+  sendToKitchen = async (req: Request, res: Response) => {
+    try {
+      const ticket = await this.orderService.sendOrderToKitchen(req.params.id);
+      return res.status(200).json(ticket);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  };
 }
