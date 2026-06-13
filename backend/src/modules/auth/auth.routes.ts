@@ -8,5 +8,6 @@ const controller = new AuthController();
 
 router.post('/login', controller.login);
 router.post('/signup', controller.signup);
+router.post('/refresh', controller.refresh);
 
 export default router;

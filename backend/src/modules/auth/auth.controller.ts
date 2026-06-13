@@ -25,4 +25,14 @@ export class AuthController {
       return res.status(400).json({ error: error.message });
     }
   };
+
+  refresh = async (req: Request, res: Response) => {
+    try {
+      const { refreshToken } = req.body;
+      const result = await this.authService.refresh(refreshToken);
+      return res.status(200).json(result);
+    } catch (error: any) {
+      return res.status(401).json({ error: error.message });
+    }
+  };
 }
