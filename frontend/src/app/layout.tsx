@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { OfflineSyncProvider } from "@/components/OfflineSyncProvider";
+import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -21,9 +22,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} antialiased h-full`}>
-      <body className="h-full bg-cafe-bg text-gray-900 font-sans flex flex-col">
-        <OfflineSyncProvider />
-        {children}
+      <body className="h-full bg-cafe-bg text-cafe-text font-sans flex flex-col">
+        <AuthProvider>
+          <OfflineSyncProvider />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
