@@ -21,6 +21,8 @@ interface InventoryState {
   categories: Category[];
   products: InventoryProduct[];
   addCategory: (cat: Category) => void;
+  updateCategory: (id: string, updates: Partial<Category>) => void;
+  deleteCategory: (id: string) => void;
   addProduct: (prod: InventoryProduct) => void;
   updateProduct: (id: string, updates: Partial<InventoryProduct>) => void;
   deleteProducts: (ids: string[]) => void;
@@ -45,6 +47,14 @@ export const useInventoryStore = create<InventoryState>((set) => ({
   products: MOCK_PRODUCTS,
   
   addCategory: (cat) => set((state) => ({ categories: [...state.categories, cat] })),
+  
+  updateCategory: (id, updates) => set((state) => ({
+    categories: state.categories.map(c => c.id === id ? { ...c, ...updates } : c)
+  })),
+
+  deleteCategory: (id) => set((state) => ({
+    categories: state.categories.filter(c => c.id !== id)
+  })),
   
   addProduct: (prod) => set((state) => ({ products: [prod, ...state.products] })),
   
