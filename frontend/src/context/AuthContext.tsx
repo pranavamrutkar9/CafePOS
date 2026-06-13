@@ -39,10 +39,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (data: { email: string; password?: string }) => {
     const res = await api.post("/auth/login", data);
-    const { token: newToken, user: newUser } = res.data;
-    setToken(newToken);
+    const { accessToken, refreshToken, user: newUser } = res.data;
+    setToken(accessToken);
     setUser(newUser);
-    localStorage.setItem("token", newToken);
+    localStorage.setItem("token", accessToken);
+    if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
     localStorage.setItem("user", JSON.stringify(newUser));
     
     // Create session
@@ -56,10 +57,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signup = async (data: { name: string; email: string; password?: string }) => {
     const res = await api.post("/auth/signup", data);
-    const { token: newToken, user: newUser } = res.data;
-    setToken(newToken);
+    const { accessToken, refreshToken, user: newUser } = res.data;
+    setToken(accessToken);
     setUser(newUser);
-    localStorage.setItem("token", newToken);
+    localStorage.setItem("token", accessToken);
+    if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
     localStorage.setItem("user", JSON.stringify(newUser));
   };
 
@@ -76,6 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     setUser(null);
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
     localStorage.removeItem("sessionId");
   };

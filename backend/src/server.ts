@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { initSocketIO } from './socket/index';
+import { apiLimiter, authLimiter } from './middleware/rateLimiter';
 
 // Import modular routers
 import authRouter from './modules/auth/auth.routes';
@@ -38,7 +39,8 @@ app.get('/health', (req, res) => {
 });
 
 // Mount modular routes
-app.use('/api/auth', authRouter);
+app.use('/api', apiLimiter);
+app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/products', productRouter);
 app.use('/api/categories', categoryRouter);
 app.use('/api/employees', employeeRouter);

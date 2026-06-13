@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { getSocketIO } from '../../socket/index';
 import { CouponPromotionService } from '../coupons-promotions/coupon-promotion.service';
 import { calculateOrderTotals } from './order.totals';
+import { sendThankYouEmail } from '../notifications/email';
 
 const prisma = new PrismaClient();
 
@@ -196,7 +197,8 @@ export class OrderService {
       },
       include: {
         items: true,
-        table: true
+        table: true,
+        customer: true, // Fetch customer data for the email notification
       }
     });
 
@@ -210,6 +212,11 @@ export class OrderService {
       const io = getSocketIO();
       if (io) {
         io.emit('table-updated', { tableId: updated.tableId, status: 'AVAILABLE' });
+      }
+
+      // Send the motivational "Thank You" email if it's a successful payment
+      if (data.status === 'PAID' && updated.customer && updated.customer.email) {
+        sendThankYouEmail(updated.customer.email, updated.customer.name);
       }
     }
 
