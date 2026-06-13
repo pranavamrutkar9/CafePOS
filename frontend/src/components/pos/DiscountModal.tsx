@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Discount, usePOSStore } from "@/store/usePOSStore";
 import { X, Tag, Percent } from "lucide-react";
-import apiClient from "@/lib/apiClient";
+import { apiClient } from "@/lib/apiClient";
 
 interface DiscountModalProps {
   isOpen: boolean;

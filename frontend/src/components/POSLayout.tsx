@@ -7,12 +7,14 @@ import { useAuth } from "@/context/AuthContext";
 import { usePOSStore } from "@/store/usePOSStore";
 import PrivateRoute from "./PrivateRoute";
 import TableSelectionModal from "./TableSelectionModal";
+import SessionSummaryModal from "./SessionSummaryModal";
 
 export default function POSLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { selectedTable, setTableModalOpen } = usePOSStore();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSessionModal, setShowSessionModal] = useState(false);
 
   const floorName = selectedTable?.floorName || "Select";
   const tableNumber = selectedTable?.tableNumber || "Table";
@@ -110,7 +112,7 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
                       <BarChart size={16} className="text-gray-400" /> <span>Reports</span>
                     </Link>
                     <div className="h-px bg-gray-700 my-1"></div>
-                    <button onClick={() => { logout(); setMenuOpen(false); }} className="flex items-center gap-3 px-4 py-2 hover:bg-gray-700 transition-colors w-full text-left text-cafe-danger font-medium">
+                    <button onClick={() => { setShowSessionModal(true); setMenuOpen(false); }} className="flex items-center gap-3 px-4 py-2 hover:bg-gray-700 transition-colors w-full text-left text-cafe-danger font-medium">
                       <LogOut size={16} /> <span>Log-Out</span>
                     </button>
                   </div>
@@ -124,6 +126,9 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-auto relative p-4">
           {children}
         </main>
+        
+        {/* Session Modal */}
+        {showSessionModal && <SessionSummaryModal onClose={() => setShowSessionModal(false)} />}
       </div>
     </PrivateRoute>
   );

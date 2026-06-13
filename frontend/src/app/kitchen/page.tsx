@@ -1,59 +1,92 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, ChevronDown, CheckCircle2, CircleDashed, Flame } from "lucide-react";
 import { LoadMeter } from "@/components/kds/LoadMeter";
+import api from "@/api/axios";
+import toast from "react-hot-toast";
 
 export default function KitchenDisplayPage() {
-  const [tickets, setTickets] = useState([
-    {
-      id: "1042",
-      status: "TO_COOK",
-      time: "12:45",
-      items: [
-        { id: 1, name: "Cappuccino", qty: 2, completed: false },
-        { id: 2, name: "Club Sandwich", qty: 1, completed: false }
-      ]
-    },
-    {
-      id: "1043",
-      status: "PREPARING",
-      time: "12:48",
-      items: [
-        { id: 3, name: "Latte", qty: 1, completed: true },
-        { id: 4, name: "Chocolate Cake", qty: 1, completed: false }
-      ]
-    },
-    {
-      id: "1040",
-      status: "COMPLETED",
-      time: "12:30",
-      items: [
-        { id: 5, name: "Burger", qty: 2, completed: true }
-      ]
-    }
-  ]);
+  const [tickets, setTickets] = useState<any[]>([]);
 
-  const toggleItem = (ticketId: string, itemId: number) => {
-    setTickets(tickets.map(t => {
-      if (t.id === ticketId) {
-        return {
-          ...t,
-          items: t.items.map(i => i.id === itemId ? { ...i, completed: !i.completed } : i)
-        };
+  const fetchTickets = async () => {
+    try {
+      const res = await api.get("/kitchen/tickets");
+      if (res.data && Array.isArray(res.data.data)) {
+        setTickets(res.data.data);
       }
-      return t;
-    }));
+    } catch (e) {
+      // Mock fallback
+      setTickets([
+        {
+          id: "1042",
+          status: "TO_COOK",
+          time: "12:45",
+          items: [
+            { id: 1, name: "Cappuccino", qty: 2, completed: false },
+            { id: 2, name: "Club Sandwich", qty: 1, completed: false }
+          ]
+        },
+        {
+          id: "1043",
+          status: "PREPARING",
+          time: "12:48",
+          items: [
+            { id: 3, name: "Latte", qty: 1, completed: true },
+            { id: 4, name: "Chocolate Cake", qty: 1, completed: false }
+          ]
+        }
+      ]);
+    }
   };
 
-  const advanceTicket = (ticketId: string) => {
-    setTickets(tickets.map(t => {
-      if (t.id === ticketId) {
-        if (t.status === "TO_COOK") return { ...t, status: "PREPARING" };
-        if (t.status === "PREPARING") return { ...t, status: "COMPLETED" };
+  useEffect(() => {
+    fetchTickets();
+    const interval = setInterval(() => {
+      fetchTickets();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const toggleItem = async (ticketId: string, itemId: number) => {
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (!ticket) return;
+    const item = ticket.items.find((i: any) => i.id === itemId);
+    if (!item) return;
+
+    try {
+      await api.patch(`/kitchen/tickets/${ticketId}/items/${itemId}`, { completed: !item.completed });
+      fetchTickets(); // Re-fetch or optimistically update
+    } catch (e) {
+      // Optimistic update for mock
+      setTickets(tickets.map(t => {
+        if (t.id === ticketId) {
+          return {
+            ...t,
+            items: t.items.map((i: any) => i.id === itemId ? { ...i, completed: !i.completed } : i)
+          };
+        }
+        return t;
+      }));
+    }
+  };
+
+  const advanceTicket = async (ticketId: string) => {
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (!ticket) return;
+    let nextStatus = ticket.status;
+    if (ticket.status === "TO_COOK") nextStatus = "PREPARING";
+    else if (ticket.status === "PREPARING") nextStatus = "COMPLETED";
+
+    if (nextStatus !== ticket.status) {
+      try {
+        await api.patch(`/kitchen/tickets/${ticketId}`, { status: nextStatus });
+        fetchTickets();
+      } catch (e) {
+        // Optimistic update for mock
+        setTickets(tickets.map(t => t.id === ticketId ? { ...t, status: nextStatus } : t));
       }
-      return t;
-    }));
+    }
   };
 
   const toCook = tickets.filter(t => t.status === "TO_COOK");

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "react-hot-toast";
 import { OfflineSyncProvider } from "@/components/OfflineSyncProvider";
 import { AuthProvider } from "@/context/AuthContext";
 
@@ -26,6 +27,29 @@ export default function RootLayout({
         <AuthProvider>
           <OfflineSyncProvider />
           {children}
+          <Toaster 
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                background: '#2a2a2a',
+                color: '#f0f0f0',
+                border: '1px solid #444',
+                borderRadius: '8px',
+              },
+              success: {
+                iconTheme: {
+                  primary: '#27ae60',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: '#c0392b',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
         </AuthProvider>
       </body>
     </html>

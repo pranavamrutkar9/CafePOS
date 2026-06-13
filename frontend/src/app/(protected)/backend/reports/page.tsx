@@ -216,7 +216,7 @@ export default function ReportsPage() {
                 <RechartsTooltip 
                   contentStyle={{ backgroundColor: '#2a2a2a', borderColor: '#4b5563', color: '#fff', borderRadius: '8px' }}
                   itemStyle={{ color: '#fff' }}
-                  formatter={(value: number) => `$${value.toFixed(2)}`}
+                  formatter={(value: any) => `$${Number(value || 0).toFixed(2)}`}
                 />
                 <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', color: '#9CA3AF' }} />
               </PieChart>

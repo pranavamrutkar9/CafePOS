@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePOSStore, Product } from "@/store/usePOSStore";
 import { useKDSStore } from "@/store/useKDSStore";
 import { useOrderStore } from "@/store/useOrderStore";
-import apiClient from "@/lib/apiClient";
+import { apiClient } from "@/lib/apiClient";
 import { Minus, Plus, Trash2, Tag, User, Send, CheckCircle2, QrCode, CreditCard as CardIcon, Banknote, ShoppingCart, Percent } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 import ReceiptModal from "@/components/ReceiptModal";
