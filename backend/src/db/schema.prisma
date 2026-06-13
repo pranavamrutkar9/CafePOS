@@ -20,6 +20,7 @@ model User {
   role          String    @default("EMPLOYEE")
   orders        Order[]
   sessions      Session[]
+  auditLogs     AuditLog[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -145,6 +146,10 @@ model Order {
   updatedAt      DateTime        @updatedAt
   items          OrderItem[]
   kitchenTickets KitchenTicket[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([employeeId])
 }
 
 model OrderItem {
@@ -160,6 +165,9 @@ model OrderItem {
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
   kitchenItems KitchenTicketItem[]
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 // Removed enum TicketStatus
@@ -194,4 +202,22 @@ model Session {
   closingAmount Float?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([employeeId])
+  @@index([openedAt])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String   
+  entity    String   
+  entityId  String
+  details   String?  
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
 }
