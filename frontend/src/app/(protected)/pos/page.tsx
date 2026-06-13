@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePOSStore, Product, CartItem } from "@/store/usePOSStore";
+import { usePOSStore, Product } from "@/store/usePOSStore";
 import { useKDSStore } from "@/store/useKDSStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import apiClient from "@/lib/apiClient";
-import { Minus, Plus, Trash2, Tag, User, Send, CheckCircle2, QrCode, CreditCard as CardIcon, Banknote } from "lucide-react";
+import { Minus, Plus, Trash2, Tag, User, Send, CheckCircle2, QrCode, CreditCard as CardIcon, Banknote, ShoppingCart, Percent } from "lucide-react";
 import { QRCodeCanvas } from "qrcode.react";
 import ReceiptModal from "@/components/ReceiptModal";
+import CustomerSelectionModal from "@/components/pos/CustomerSelectionModal";
+import DiscountModal from "@/components/pos/DiscountModal";
 
 const MOCK_CATEGORIES = ["All", "Hot Coffee", "Cold Brew", "Pastries", "Sandwiches"];
 
@@ -35,7 +37,9 @@ export default function POSPage() {
     selectedPaymentMethod,
     setPaymentMethod,
     amountEntered,
-    setAmountEntered
+    setAmountEntered,
+    selectedCustomer,
+    appliedDiscount
   } = usePOSStore();
   
   const { addTicket } = useKDSStore();
@@ -44,7 +48,10 @@ export default function POSPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [toastMessage, setToastMessage] = useState("");
   const [txRef, setTxRef] = useState("");
+  
   const [receiptData, setReceiptData] = useState<{isOpen: boolean, orderNumber: string, amount: number}>({ isOpen: false, orderNumber: "", amount: 0 });
+  const [customerModalOpen, setCustomerModalOpen] = useState(false);
+  const [discountModalOpen, setDiscountModalOpen] = useState(false);
 
   useEffect(() => {
     if (!selectedTable) {
@@ -57,14 +64,27 @@ export default function POSPage() {
     : MOCK_PRODUCTS.filter(p => p.category === activeCategory);
 
   const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-  const discountTotal = cart.reduce((sum, item) => {
+  
+  const itemDiscountTotal = cart.reduce((sum, item) => {
     if (item.product.promotion) {
       return sum + ((item.product.price * (item.product.promotion / 100)) * item.quantity);
     }
     return sum;
   }, 0);
-  const tax = (subtotal - discountTotal) * 0.05; // 5% GST
-  const total = (subtotal - discountTotal) + tax;
+
+  let globalDiscountAmount = 0;
+  if (appliedDiscount) {
+    if (appliedDiscount.type === "percentage") {
+      globalDiscountAmount = (subtotal - itemDiscountTotal) * (appliedDiscount.value / 100);
+    } else {
+      globalDiscountAmount = appliedDiscount.value;
+    }
+  }
+
+  const totalDiscounts = itemDiscountTotal + globalDiscountAmount;
+  const taxableAmount = Math.max(0, subtotal - totalDiscounts);
+  const tax = taxableAmount * 0.05; // 5% GST
+  const total = taxableAmount + tax;
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -109,6 +129,7 @@ export default function POSPage() {
       id: Math.random().toString(36).substring(7),
       orderNumber,
       date: new Date().toISOString(),
+      customerName: selectedCustomer?.name,
       amount: total,
       status: "Paid",
       items: [...cart],
@@ -137,6 +158,8 @@ export default function POSPage() {
         orderNumber={receiptData.orderNumber}
         amount={receiptData.amount}
       />
+      <CustomerSelectionModal isOpen={customerModalOpen} onClose={() => setCustomerModalOpen(false)} />
+      <DiscountModal isOpen={discountModalOpen} onClose={() => setDiscountModalOpen(false)} />
 
       {toastMessage && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
@@ -250,10 +273,17 @@ export default function POSPage() {
               <span>Subtotal</span>
               <span>${subtotal.toFixed(2)}</span>
             </div>
-            {discountTotal > 0 && (
+            {totalDiscounts > 0 && (
               <div className="flex justify-between text-sm text-cafe-warning">
-                <span>Discount</span>
-                <span>-${discountTotal.toFixed(2)}</span>
+                <div className="flex items-center gap-1">
+                  <span>Discount</span>
+                  {appliedDiscount && (
+                    <span className="text-xs bg-cafe-warning/20 px-1.5 py-0.5 rounded-md">
+                      ({appliedDiscount.code})
+                    </span>
+                  )}
+                </div>
+                <span>-${totalDiscounts.toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between text-sm text-gray-400">
@@ -264,13 +294,25 @@ export default function POSPage() {
               <span>Total</span>
               <span>${total.toFixed(2)}</span>
             </div>
+            
+            {selectedCustomer && (
+              <div className="flex justify-between items-center bg-[#2a2a2a] p-2 rounded-lg mt-1 border border-cafe-primary/20">
+                <span className="text-sm text-gray-300">Customer: <span className="text-white font-semibold">{selectedCustomer.name}</span></span>
+              </div>
+            )}
 
-            <div className="grid grid-cols-2 gap-2 mt-4">
-              <button className="flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg font-medium transition-colors">
-                <User size={18} /> Customer
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <button 
+                onClick={() => setCustomerModalOpen(true)}
+                className={`flex items-center justify-center gap-2 py-3 rounded-lg font-medium transition-colors ${selectedCustomer ? 'bg-cafe-primary text-white hover:bg-red-700' : 'bg-gray-700 hover:bg-gray-600 text-white'}`}
+              >
+                <User size={18} /> {selectedCustomer ? "Change Cust" : "Customer"}
               </button>
-              <button className="flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg font-medium transition-colors">
-                <Tag size={18} /> Discount
+              <button 
+                onClick={() => setDiscountModalOpen(true)}
+                className={`flex items-center justify-center gap-2 py-3 rounded-lg font-medium transition-colors ${appliedDiscount ? 'bg-cafe-warning text-black hover:bg-yellow-500' : 'bg-gray-700 hover:bg-gray-600 text-white'}`}
+              >
+                <Tag size={18} /> {appliedDiscount ? "Discounted" : "Discount"}
               </button>
               <button className="flex items-center justify-center gap-2 bg-[#2d3748] hover:bg-[#4a5568] text-white py-3 rounded-lg font-medium transition-colors border border-gray-600">
                 Receipt

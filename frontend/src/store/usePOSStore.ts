@@ -11,12 +11,25 @@ export interface Product {
   name: string;
   price: number;
   category: string;
-  promotion?: number; // Discount percentage
+  promotion?: number; // Item-level discount percentage
 }
 
 export interface CartItem {
   product: Product;
   quantity: number;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export interface Discount {
+  code: string;
+  type: "percentage" | "fixed";
+  value: number; // e.g., 30 for 30%, or 5 for $5
 }
 
 interface POSState {
@@ -35,6 +48,12 @@ interface POSState {
   setPaymentMethod: (method: string) => void;
   amountEntered: string;
   setAmountEntered: (amount: string) => void;
+
+  selectedCustomer: Customer | null;
+  setSelectedCustomer: (customer: Customer | null) => void;
+
+  appliedDiscount: Discount | null;
+  setAppliedDiscount: (discount: Discount | null) => void;
 }
 
 export const usePOSStore = create<POSState>((set) => ({
@@ -69,11 +88,17 @@ export const usePOSStore = create<POSState>((set) => ({
   removeFromCart: (productId) => set((state) => ({
     cart: state.cart.filter((item) => item.product.id !== productId),
   })),
-  clearCart: () => set({ cart: [], amountEntered: "" }),
+  clearCart: () => set({ cart: [], amountEntered: "", selectedCustomer: null, appliedDiscount: null }),
 
   selectedPaymentMethod: "Cash",
   setPaymentMethod: (method) => set({ selectedPaymentMethod: method }),
   amountEntered: "",
   setAmountEntered: (amount) => set({ amountEntered: amount }),
+
+  selectedCustomer: null,
+  setSelectedCustomer: (customer) => set({ selectedCustomer: customer }),
+
+  appliedDiscount: null,
+  setAppliedDiscount: (discount) => set({ appliedDiscount: discount }),
 }));
 
