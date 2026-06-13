@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Search, ShoppingCart, List, PlusSquare, LayoutGrid, User, Menu, LogOut, Package, Tags, CreditCard, Gift, Users, Monitor, BarChart } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { HamburgerMenu } from "./SharedMenu";
 import { usePOSStore } from "@/store/usePOSStore";
 import PrivateRoute from "./PrivateRoute";
 import TableSelectionModal from "./TableSelectionModal";
@@ -88,36 +89,7 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
               </button>
 
               {menuOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)}></div>
-                  <div className="absolute right-0 mt-3 w-56 bg-white border border-[#efece7] rounded-2xl shadow-xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <Link href="/backend/products" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2c2623] hover:bg-[#faf8f5] transition-all">
-                      <Package size={15} className="text-[#8e827b]" /> <span>Products</span>
-                    </Link>
-                    <Link href="/backend/categories" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2c2623] hover:bg-[#faf8f5] transition-all">
-                      <Tags size={15} className="text-[#8e827b]" /> <span>Category</span>
-                    </Link>
-                    <Link href="/backend/payment-methods" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2c2623] hover:bg-[#faf8f5] transition-all">
-                      <CreditCard size={15} className="text-[#8e827b]" /> <span>Payment Method</span>
-                    </Link>
-                    <Link href="/backend/promotions" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2c2623] hover:bg-[#faf8f5] transition-all">
-                      <Gift size={15} className="text-[#8e827b]" /> <span>Coupon & Promo</span>
-                    </Link>
-                    <Link href="/backend/users" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2c2623] hover:bg-[#faf8f5] transition-all">
-                      <Users size={15} className="text-[#8e827b]" /> <span>User/Employee</span>
-                    </Link>
-                    <Link href="/kds" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2c2623] hover:bg-[#faf8f5] transition-all">
-                      <Monitor size={15} className="text-[#8e827b]" /> <span>KDS</span>
-                    </Link>
-                    <Link href="/reports" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2c2623] hover:bg-[#faf8f5] transition-all">
-                      <BarChart size={15} className="text-[#8e827b]" /> <span>Reports</span>
-                    </Link>
-                    <div className="h-px bg-[#efece7] my-1.5"></div>
-                    <button onClick={() => { setShowSessionModal(true); setMenuOpen(false); }} className="flex items-center gap-3 px-4 py-2.5 text-sm w-full text-left text-[#c86a50] font-bold hover:bg-[#c86a50]/5 transition-all cursor-pointer">
-                      <LogOut size={15} /> <span>Log-Out</span>
-                    </button>
-                  </div>
-                </>
+                <HamburgerMenu onClose={() => setMenuOpen(false)} />
               )}
             </div>
           </div>

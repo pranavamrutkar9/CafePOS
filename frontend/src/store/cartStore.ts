@@ -14,6 +14,7 @@ export interface CartItem {
 
 interface CartState {
   orderId: string | null;
+  order: any | null;
   cart: CartItem[];
   subtotal: number;
   tax: number;
@@ -25,6 +26,7 @@ interface CartState {
 
 export const useCartStore = create<CartState>((set) => ({
   orderId: null,
+  order: null,
   cart: [],
   subtotal: 0,
   tax: 0,
@@ -34,6 +36,7 @@ export const useCartStore = create<CartState>((set) => ({
     if (!order) {
       set({
         orderId: null,
+        order: null,
         cart: [],
         subtotal: 0,
         tax: 0,
@@ -58,6 +61,7 @@ export const useCartStore = create<CartState>((set) => ({
 
     set({
       orderId: order.id,
+      order: order,
       cart: cartItems,
       subtotal: order.subtotal || 0,
       tax: order.tax || 0,
@@ -67,6 +71,7 @@ export const useCartStore = create<CartState>((set) => ({
   },
   clear: () => set({
     orderId: null,
+    order: null,
     cart: [],
     subtotal: 0,
     tax: 0,

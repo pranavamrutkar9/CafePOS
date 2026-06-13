@@ -73,7 +73,11 @@ export async function calculateOrderTotals(
           : promo.value;
         if (discountVal > lineDiscount) {
           lineDiscount = discountVal;
-          appliedPromoLabel = `PROMOTION_${promo.id}`;
+          if (promo.type === 'PERCENT' || promo.type === 'PERCENTAGE') {
+            appliedPromoLabel = `${promo.value}% off on ₹${lineSubtotal}`;
+          } else {
+            appliedPromoLabel = `₹${promo.value} off`;
+          }
         }
       }
     }
@@ -128,7 +132,11 @@ export async function calculateOrderTotals(
           : promo.value;
         if (discountVal > bestOrderDiscount) {
           bestOrderDiscount = discountVal;
-          bestPromoLabel = `PROMOTION_${promo.id}`;
+          if (promo.type === 'PERCENT' || promo.type === 'PERCENTAGE') {
+            bestPromoLabel = `${promo.value}% off on ₹${subtotalAfterProductDiscounts}`;
+          } else {
+            bestPromoLabel = `₹${promo.value} off`;
+          }
         }
       }
     }

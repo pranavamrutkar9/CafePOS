@@ -7,10 +7,13 @@ async function main() {
   console.log('Starting seed execution...');
 
   // 1. Clear existing data
+  await prisma.auditLog.deleteMany();
+  await prisma.booking.deleteMany();
   await prisma.kitchenTicketItem.deleteMany();
   await prisma.kitchenTicket.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
+  await prisma.session.deleteMany();
   await prisma.table.deleteMany();
   await prisma.floor.deleteMany();
   await prisma.product.deleteMany();

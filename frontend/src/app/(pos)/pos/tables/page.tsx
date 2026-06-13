@@ -8,6 +8,7 @@ import {
   CreditCard, Gift, BookOpen, Users, Monitor, BarChart, X, ArrowLeft
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { HamburgerMenu } from "@/components/SharedMenu";
 import { socket, joinSessionRoom } from "@/lib/socket";
 import api from "@/api/axios";
 import toast from "react-hot-toast";
@@ -245,40 +246,7 @@ export default function POSTablesPage() {
             </button>
 
             {menuOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)}></div>
-                <div className="absolute right-0 mt-3 w-56 bg-white border border-[#EFECE7] rounded-2xl shadow-xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="px-4 py-2 text-xs font-bold text-[#8e827b] border-b border-[#EFECE7] mb-1">Navigation</div>
-                  <Link href="/backend/products" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <Package size={15} className="text-[#8e827b]" /> <span>Products</span>
-                  </Link>
-                  <Link href="/backend/categories" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <Tags size={15} className="text-[#8e827b]" /> <span>Category</span>
-                  </Link>
-                  <Link href="/backend/payment-methods" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <CreditCard size={15} className="text-[#8e827b]" /> <span>Payment method</span>
-                  </Link>
-                  <Link href="/backend/promotions" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <Gift size={15} className="text-[#8e827b]" /> <span>Coupon & Promotion</span>
-                  </Link>
-                  <Link href="/backend/bookings" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <BookOpen size={15} className="text-[#8e827b]" /> <span>Booking</span>
-                  </Link>
-                  <Link href="/backend/users" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <Users size={15} className="text-[#8e827b]" /> <span>User/Employee</span>
-                  </Link>
-                  <Link href="/kds" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <Monitor size={15} className="text-[#8e827b]" /> <span>KDS</span>
-                  </Link>
-                  <Link href="/reports" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <BarChart size={15} className="text-[#8e827b]" /> <span>Reports</span>
-                  </Link>
-                  <div className="h-px bg-[#EFECE7] my-1.5"></div>
-                  <button onClick={() => { logout(); setMenuOpen(false); }} className="flex items-center gap-3 px-4 py-2.5 text-sm w-full text-left text-[#C86A50] font-bold hover:bg-[#C86A50]/5 transition-all">
-                    <LogOut size={15} /> <span>Log-Out</span>
-                  </button>
-                </div>
-              </>
+              <HamburgerMenu onClose={() => setMenuOpen(false)} />
             )}
           </div>
         </div>

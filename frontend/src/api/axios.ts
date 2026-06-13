@@ -11,6 +11,9 @@ const api = axios.create({
 
 // Mock Adapter for demonstration without backend
 export const mockApi = new MockAdapter(api, { delayResponse: 500 });
+if (process.env.NEXT_PUBLIC_USE_MOCK !== "true") {
+  mockApi.restore();
+}
 
 // Mock endpoints to keep the UI working seamlessly
 mockApi.onPost("/auth/login").reply((config) => {

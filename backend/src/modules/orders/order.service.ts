@@ -2,16 +2,78 @@ import { PrismaClient } from '@prisma/client';
 import { getSocketIO, emitToSession } from '../../socket/index';
 import { CouponPromotionService } from '../coupons-promotions/coupon-promotion.service';
 import { calculateOrderTotals } from './order.totals';
-import { sendThankYouEmail } from '../notifications/email';
+import { sendThankYouEmail, sendReceiptEmail } from '../notifications/email';
 
 const prisma = new PrismaClient();
 
 export class OrderService {
-  async getAllOrders() {
-    return prisma.order.findMany({
+  async getAllOrders(filters: any = {}) {
+    const page = Number(filters.page) || 1;
+    const limit = Number(filters.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+    if (filters.customerId) {
+      where.customerId = filters.customerId;
+    }
+    if (filters.tableId) {
+      where.tableId = filters.tableId;
+    }
+    if (filters.sessionId) {
+      where.sessionId = filters.sessionId;
+    }
+    if (filters.dateFrom || filters.dateTo) {
+      where.createdAt = {};
+      if (filters.dateFrom) {
+        where.createdAt.gte = new Date(filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        where.createdAt.lte = new Date(filters.dateTo);
+      }
+    }
+
+    if (filters.search) {
+      const searchVal = filters.search.trim();
+      where.OR = [
+        {
+          id: {
+            contains: searchVal
+          }
+        },
+        {
+          customer: {
+            name: {
+              contains: searchVal
+            }
+          }
+        }
+      ];
+      
+      const parsedDate = Date.parse(searchVal);
+      if (!isNaN(parsedDate)) {
+        const d = new Date(parsedDate);
+        const nextDay = new Date(d);
+        nextDay.setDate(d.getDate() + 1);
+        where.OR.push({
+          createdAt: {
+            gte: d,
+            lt: nextDay
+          }
+        });
+      }
+    }
+
+    const total = await prisma.order.count({ where });
+    const orders = await prisma.order.findMany({
+      where,
       include: {
         table: true,
         employee: true,
+        customer: true,
         items: {
           include: {
             product: true,
@@ -19,7 +81,16 @@ export class OrderService {
         },
       },
       orderBy: { createdAt: 'desc' },
+      skip: skip,
+      take: limit,
     });
+
+    return {
+      data: orders,
+      total,
+      page,
+      limit
+    };
   }
 
   async getOrderById(id: string) {
@@ -27,6 +98,8 @@ export class OrderService {
       where: { id },
       include: {
         table: true,
+        customer: true,
+        employee: true,
         items: {
           include: {
             product: true,
@@ -129,6 +202,15 @@ export class OrderService {
         });
         await prisma.orderItem.deleteMany({
           where: { id: { in: deleteIds } }
+        });
+        
+        // Clean up empty kitchen tickets
+        await prisma.kitchenTicket.deleteMany({
+          where: {
+            items: {
+              none: {}
+            }
+          }
         });
       }
 
@@ -402,6 +484,15 @@ export class OrderService {
         await prisma.orderItem.delete({
           where: { id: existingItem.id }
         });
+
+        // Clean up empty kitchen tickets
+        await prisma.kitchenTicket.deleteMany({
+          where: {
+            items: {
+              none: {}
+            }
+          }
+        });
       }
     } else {
       if (existingItem) {
@@ -468,5 +559,70 @@ export class OrderService {
     });
 
     return updatedOrder;
+  }
+
+  async sendReceipt(orderId: string, email: string) {
+    const order = await this.getOrderById(orderId);
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    const orderNumber = order.id.split('-')[0];
+    const date = new Date(order.createdAt).toLocaleString();
+    const tableName = order.table ? `Table ${order.table.number}` : 'Walk-in';
+    const cashierName = order.employee ? order.employee.name : 'Staff';
+
+    let itemRows = '';
+    order.items.forEach((item: any) => {
+      itemRows += `
+        <tr>
+          <td style="padding: 5px 0;">
+            ${item.product.name}
+            ${item.discountLabel ? `<div style="font-size: 10px; color: #C86A50; font-style: italic;">(${item.discountLabel})</div>` : ''}
+          </td>
+          <td style="padding: 5px 0; text-align: center;">${item.qty}</td>
+          <td style="padding: 5px 0; text-align: right;">₹${item.lineTotal.toFixed(2)}</td>
+        </tr>
+      `;
+    });
+
+    const discountRow = order.discount > 0 
+      ? `<p style="margin: 3px 0; color: #C86A50;">Discount (${order.discountLabel || 'Promo'}): -₹${order.discount.toFixed(2)}</p>` 
+      : '';
+
+    const receiptHtml = `
+      <div style="font-family: monospace; max-width: 400px; margin: 0 auto; padding: 20px; border: 1px solid #EFECE7; background-color: #ffffff;">
+        <h2 style="text-align: center; margin-bottom: 5px;">Odoo Cafe</h2>
+        <p style="text-align: center; margin-top: 0; font-size: 12px; color: #8E827B;">Receipt #${orderNumber}</p>
+        <hr style="border: none; border-top: 1px dashed #EFECE7;" />
+        <p style="font-size: 12px; margin: 3px 0;">Date: ${date}</p>
+        <p style="font-size: 12px; margin: 3px 0;">Table: ${tableName}</p>
+        <p style="font-size: 12px; margin: 3px 0;">Cashier: ${cashierName}</p>
+        <hr style="border: none; border-top: 1px dashed #EFECE7;" />
+        <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 1px solid #EFECE7; text-align: left;">
+              <th style="padding-bottom: 5px;">Item</th>
+              <th style="padding-bottom: 5px; text-align: center;">Qty</th>
+              <th style="padding-bottom: 5px; text-align: right;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemRows}
+          </tbody>
+        </table>
+        <hr style="border: none; border-top: 1px dashed #EFECE7;" />
+        <div style="font-size: 12px; text-align: right; line-height: 1.6;">
+          <p style="margin: 3px 0;">Subtotal: ₹${order.subtotal.toFixed(2)}</p>
+          ${discountRow}
+          <p style="margin: 3px 0;">Tax (5%): ₹${order.tax.toFixed(2)}</p>
+          <p style="margin: 3px 0; font-weight: bold; font-size: 14px;">Total: ₹${order.total.toFixed(2)}</p>
+        </div>
+        <hr style="border: none; border-top: 1px dashed #EFECE7;" />
+        <p style="text-align: center; font-size: 12px; margin-top: 15px;">Thank you for dining with us! ☕</p>
+      </div>
+    `;
+
+    return sendReceiptEmail(email, receiptHtml);
   }
 }

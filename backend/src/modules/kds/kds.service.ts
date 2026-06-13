@@ -6,6 +6,11 @@ const prisma = new PrismaClient();
 export class KdsService {
   async getTickets() {
     return prisma.kitchenTicket.findMany({
+      where: {
+        items: {
+          some: {}
+        }
+      },
       include: {
         order: {
           include: {
@@ -108,7 +113,12 @@ export class KdsService {
 
     // Use KitchenTicket to find load instead of Order, since KDS operates on tickets
     const activeTickets = await prisma.kitchenTicket.findMany({
-      where: { status: { in: ['TO_COOK', 'PREPARING'] } },
+      where: {
+        status: { in: ['TO_COOK', 'PREPARING'] },
+        items: {
+          some: {}
+        }
+      },
       include: { items: { include: { orderItem: true } }, order: true },
     });
 

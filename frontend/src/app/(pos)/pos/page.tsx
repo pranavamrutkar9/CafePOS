@@ -12,6 +12,7 @@ import Link from "next/link";
 import api from "@/api/axios";
 import toast from "react-hot-toast";
 import { QRCodeSVG } from "qrcode.react";
+import { HamburgerMenu } from "@/components/SharedMenu";
 
 export default function POSPage() {
   return (
@@ -49,6 +50,7 @@ function POSPageContent() {
   const { 
     cart, 
     orderId: activeOrderId, 
+    order: activeOrder,
     subtotal, 
     tax, 
     discount, 
@@ -86,6 +88,10 @@ function POSPageContent() {
   const [cardTxnRefInput, setCardTxnRefInput] = useState("");
   const [upiPaymentMethod, setUpiPaymentMethod] = useState<any>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [receiptEmail, setReceiptEmail] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
 
   // Load customers when modal opens or query changes
   useEffect(() => {
@@ -390,6 +396,33 @@ function POSPageContent() {
     }
   };
 
+  const handleOpenEmailModal = () => {
+    // Prefill with customer's email if available
+    setReceiptEmail(activeOrder?.customer?.email || "");
+    setEmailModalOpen(true);
+  };
+
+  const handleSendEmailReceipt = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!orderId || !receiptEmail.trim()) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    setEmailSending(true);
+    try {
+      toast.loading("Sending receipt via email...", { id: "send-receipt" });
+      await api.post(`/orders/${orderId}/send-receipt`, {
+        email: receiptEmail.trim()
+      });
+      toast.success("Receipt emailed successfully!", { id: "send-receipt" });
+      setEmailModalOpen(false);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to send email receipt.", { id: "send-receipt" });
+    } finally {
+      setEmailSending(false);
+    }
+  };
+
   // NumPad key handler
   const handleNumPadPress = (key: string) => {
     if (["Prices", "Disc.", "Qty"].includes(key)) {
@@ -481,40 +514,7 @@ function POSPageContent() {
             </button>
 
             {menuOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)}></div>
-                <div className="absolute right-0 mt-3 w-56 bg-white border border-[#EFECE7] rounded-2xl shadow-xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="px-4 py-2 text-xs font-bold text-[#8e827b] border-b border-[#EFECE7] mb-1">Navigation</div>
-                  <Link href="/backend/products" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <Package size={15} className="text-[#8e827b]" /> <span>Products</span>
-                  </Link>
-                  <Link href="/backend/categories" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <Tags size={15} className="text-[#8e827b]" /> <span>Category</span>
-                  </Link>
-                  <Link href="/backend/payment-methods" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <CreditCard size={15} className="text-[#8e827b]" /> <span>Payment method</span>
-                  </Link>
-                  <Link href="/backend/promotions" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <Gift size={15} className="text-[#8e827b]" /> <span>Coupon & Promotion</span>
-                  </Link>
-                  <Link href="/backend/bookings" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <BookOpen size={15} className="text-[#8e827b]" /> <span>Booking</span>
-                  </Link>
-                  <Link href="/backend/users" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <Users size={15} className="text-[#8e827b]" /> <span>User/Employee</span>
-                  </Link>
-                  <Link href="/kds" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <Monitor size={15} className="text-[#8e827b]" /> <span>KDS</span>
-                  </Link>
-                  <Link href="/reports" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#2C2623] hover:bg-[#FAF8F5] transition-all">
-                    <BarChart size={15} className="text-[#8e827b]" /> <span>Reports</span>
-                  </Link>
-                  <div className="h-px bg-[#EFECE7] my-1.5"></div>
-                  <button onClick={() => { logout(); setMenuOpen(false); }} className="flex items-center gap-3 px-4 py-2.5 text-sm w-full text-left text-[#C86A50] font-bold hover:bg-[#C86A50]/5 transition-all">
-                    <LogOut size={15} /> <span>Log-Out</span>
-                  </button>
-                </div>
-              </>
+              <HamburgerMenu onClose={() => setMenuOpen(false)} />
             )}
           </div>
         </div>
@@ -713,6 +713,7 @@ function POSPageContent() {
                 <span>Discount</span>
               </button>
               <button 
+                onClick={handleOpenEmailModal}
                 disabled={!orderId}
                 className="flex flex-col items-center justify-center py-2.5 bg-white disabled:opacity-50 border border-[#E6E1DA] hover:border-[#C86A50] rounded-xl text-xs font-bold text-[#8e827b] hover:text-[#C86A50] transition-all shadow-sm cursor-pointer"
               >
@@ -1118,7 +1119,56 @@ function POSPageContent() {
         </div>
       )}
 
-      </div>
+      {/* Email Receipt Modal */}
+      {emailModalOpen && (
+        <div className="fixed inset-0 bg-[#2C2623]/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="paper-panel rounded-2xl w-full max-w-md animate-in zoom-in-95 duration-200 overflow-hidden shadow-xl border border-[#EFECE7] flex flex-col bg-white">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-[#EFECE7] flex justify-between items-center bg-white shrink-0">
+              <h2 className="text-lg font-bold text-cafe-text">Send Receipt via Email</h2>
+              <button 
+                onClick={() => setEmailModalOpen(false)} 
+                className="p-1.5 text-[#8E827B] hover:text-cafe-text rounded-full hover:bg-[#FAF8F5] transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSendEmailReceipt} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-[#8E827B] uppercase tracking-wider mb-2">Recipient Email Address</label>
+                <input 
+                  type="email" 
+                  required
+                  placeholder="name@example.com" 
+                  value={receiptEmail}
+                  onChange={(e) => setReceiptEmail(e.target.value)}
+                  className="w-full bg-[#FAF8F5] border border-[#E6E1DA] rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-[#C86A50] transition-all text-[#2C2623]"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <button 
+                  type="button"
+                  onClick={() => setEmailModalOpen(false)} 
+                  className="flex-1 py-2.5 border border-[#E6E1DA] text-cafe-text rounded-xl font-medium bg-white hover:bg-[#FAF8F5] transition-colors cursor-pointer text-xs"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={emailSending || !receiptEmail.trim()}
+                  className="flex-1 py-2.5 rounded-xl font-bold cursor-pointer active:scale-98 disabled:opacity-50 flex items-center justify-center gap-1.5 text-xs text-white bg-[#C86A50] hover:bg-[#b3563d]"
+                >
+                  {emailSending ? "Sending..." : "Send Receipt"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

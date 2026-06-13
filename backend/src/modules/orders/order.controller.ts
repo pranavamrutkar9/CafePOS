@@ -8,7 +8,7 @@ export class OrderController {
 
   getAll = async (req: Request, res: Response) => {
     try {
-      const orders = await this.orderService.getAllOrders();
+      const orders = await this.orderService.getAllOrders(req.query);
       return res.status(200).json(orders);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
@@ -66,6 +66,19 @@ export class OrderController {
       const { productId, qty } = req.body;
       const order = await this.orderService.patchOrderItems(req.params.id, productId, Number(qty));
       return res.status(200).json(order);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  };
+
+  sendReceipt = async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+      }
+      const result = await this.orderService.sendReceipt(req.params.id, email);
+      return res.status(200).json(result);
     } catch (error: any) {
       return res.status(400).json({ error: error.message });
     }

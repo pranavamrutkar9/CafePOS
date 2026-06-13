@@ -64,3 +64,27 @@ export async function sendThankYouEmail(to: string, customerName: string): Promi
     return false;
   }
 }
+
+export async function sendReceiptEmail(to: string, receiptHtml: string): Promise<{ sent: boolean; simulated: boolean }> {
+  try {
+    if (!process.env.SMTP_HOST) {
+      console.log(`\n============================`);
+      console.log(`[SIMULATED RECEIPT EMAIL SENT TO: ${to}]`);
+      console.log(receiptHtml);
+      console.log(`============================\n`);
+      return { sent: false, simulated: true };
+    }
+    
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || '"CafePOS" <receipts@cafepos.com>',
+      to,
+      subject: 'Your CafePOS Receipt ☕',
+      html: receiptHtml,
+    });
+    return { sent: true, simulated: false };
+  } catch (error) {
+    console.error('Failed to send receipt email:', error);
+    return { sent: false, simulated: false };
+  }
+}
+

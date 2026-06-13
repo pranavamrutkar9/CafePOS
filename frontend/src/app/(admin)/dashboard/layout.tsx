@@ -3,20 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  Package, 
-  Tags, 
-  CreditCard, 
-  Ticket, 
-  Calendar, 
-  Users, 
-  MonitorPlay, 
-  BarChart3, 
   LogOut,
   Search,
   Bell,
-  UserCircle,
-  LayoutGrid
+  UserCircle
 } from "lucide-react";
+import { MENU_ITEMS } from "@/components/SharedMenu";
 
 export default function DashboardLayout({
   children,
@@ -25,17 +17,7 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
 
-  const navItems = [
-    { name: "Products", href: "/dashboard/products", icon: Package },
-    { name: "Categories", href: "/dashboard/categories", icon: Tags },
-    { name: "Floor Plan", href: "/dashboard/floors", icon: LayoutGrid },
-    { name: "Payment Methods", href: "/dashboard/payments", icon: CreditCard },
-    { name: "Coupons & Promos", href: "/dashboard/promotions", icon: Ticket },
-    { name: "Booking", href: "/dashboard/booking", icon: Calendar },
-    { name: "Users & Employees", href: "/dashboard/users", icon: Users },
-    { name: "KDS", href: "/kitchen", icon: MonitorPlay },
-    { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
-  ];
+  const navItems = MENU_ITEMS;
 
   return (
     <div className="min-h-screen flex bg-[#faf8f5] text-[#2c2623]">
