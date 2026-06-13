@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { usePOSStore, Product, CartItem } from "@/store/usePOSStore";
-import { useKDSStore, KDSTicket } from "@/store/useKDSStore";
+import { useKDSStore } from "@/store/useKDSStore";
+import { useOrderStore } from "@/store/useOrderStore";
 import apiClient from "@/lib/apiClient";
-import { Minus, Plus, Trash2, Tag, User, Send, CheckCircle2 } from "lucide-react";
+import { Minus, Plus, Trash2, Tag, User, Send, CheckCircle2, QrCode, CreditCard as CardIcon, Banknote } from "lucide-react";
+import { QRCodeCanvas } from "qrcode.react";
+import ReceiptModal from "@/components/ReceiptModal";
 
 const MOCK_CATEGORIES = ["All", "Hot Coffee", "Cold Brew", "Pastries", "Sandwiches"];
 
@@ -36,9 +39,12 @@ export default function POSPage() {
   } = usePOSStore();
   
   const { addTicket } = useKDSStore();
+  const { addOrder } = useOrderStore();
 
   const [activeCategory, setActiveCategory] = useState("All");
   const [toastMessage, setToastMessage] = useState("");
+  const [txRef, setTxRef] = useState("");
+  const [receiptData, setReceiptData] = useState<{isOpen: boolean, orderNumber: string, amount: number}>({ isOpen: false, orderNumber: "", amount: 0 });
 
   useEffect(() => {
     if (!selectedTable) {
@@ -77,23 +83,6 @@ export default function POSPage() {
     const ticketId = Math.random().toString(36).substring(7);
     const orderNumber = Math.floor(1000 + Math.random() * 9000).toString();
     
-    const ticketPayload = {
-      orderItems: cart.map(item => ({
-        productId: item.product.id,
-        quantity: item.quantity,
-        notes: ""
-      })),
-      tableNumber: selectedTable?.tableNumber || "Takeout"
-    };
-
-    try {
-      // Try hitting the backend (it might fail if not fully implemented yet)
-      await apiClient.post("/api/kitchen/tickets", ticketPayload);
-    } catch (error) {
-      console.warn("Backend API failed, falling back to local KDS store.");
-    }
-
-    // Add to local KDS store
     addTicket({
       id: ticketId,
       orderNumber,
@@ -111,9 +100,44 @@ export default function POSPage() {
     showToast("Sent to Kitchen Successfully!");
   };
 
+  const handlePaymentConfirm = () => {
+    if (cart.length === 0) return;
+
+    const orderNumber = "ORD-" + Math.floor(1000 + Math.random() * 9000);
+    
+    addOrder({
+      id: Math.random().toString(36).substring(7),
+      orderNumber,
+      date: new Date().toISOString(),
+      amount: total,
+      status: "Paid",
+      items: [...cart],
+      paymentMethod: selectedPaymentMethod,
+      transactionRef: txRef || undefined
+    });
+
+    setReceiptData({ isOpen: true, orderNumber, amount: total });
+  };
+
+  const closeReceipt = () => {
+    setReceiptData({ isOpen: false, orderNumber: "", amount: 0 });
+    clearCart();
+    setTxRef("");
+  };
+
+  const amountReceived = parseFloat(amountEntered || "0");
+  const changeDue = amountReceived > total ? amountReceived - total : 0;
+  const isCashValid = amountReceived >= total;
+
   return (
     <div className="h-full flex flex-col relative">
-      {/* Toast Notification */}
+      <ReceiptModal 
+        isOpen={receiptData.isOpen} 
+        onClose={closeReceipt} 
+        orderNumber={receiptData.orderNumber}
+        amount={receiptData.amount}
+      />
+
       {toastMessage && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
           <CheckCircle2 size={20} />
@@ -121,12 +145,10 @@ export default function POSPage() {
         </div>
       )}
 
-      {/* Main Grid */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 h-full overflow-hidden">
         
         {/* LEFT COLUMN: Products (col-span-5) */}
         <div className="lg:col-span-5 flex flex-col bg-cafe-card rounded-xl border border-gray-700 overflow-hidden shadow-sm h-full">
-          {/* Categories */}
           <div className="flex overflow-x-auto hide-scrollbar p-3 border-b border-gray-700 gap-2 bg-[#1e1e1e]">
             {MOCK_CATEGORIES.map(cat => (
               <button
@@ -143,7 +165,6 @@ export default function POSPage() {
             ))}
           </div>
 
-          {/* Product Grid */}
           <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 md:grid-cols-3 gap-3">
             {filteredProducts.map(product => (
               <button
@@ -174,7 +195,6 @@ export default function POSPage() {
             )}
           </div>
 
-          {/* Cart Items */}
           <div className="flex-1 overflow-y-auto p-2">
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-gray-500 opacity-50">
@@ -225,7 +245,6 @@ export default function POSPage() {
             )}
           </div>
 
-          {/* Totals & Actions */}
           <div className="bg-[#1e1e1e] border-t border-gray-700 p-4 pb-2 flex flex-col gap-2">
             <div className="flex justify-between text-sm text-gray-400">
               <span>Subtotal</span>
@@ -259,7 +278,7 @@ export default function POSPage() {
               <button 
                 onClick={handleSendToKitchen}
                 disabled={cart.length === 0}
-                className="flex items-center justify-center gap-2 bg-cafe-primary hover:bg-red-700 text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-cafe-primary/20"
+                className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
               >
                 <Send size={18} /> Send KDS
               </button>
@@ -269,72 +288,93 @@ export default function POSPage() {
 
         {/* RIGHT COLUMN: Payment (col-span-3) */}
         <div className="lg:col-span-3 flex flex-col bg-cafe-card rounded-xl border border-gray-700 overflow-hidden shadow-sm h-full">
-          {/* Payable Display */}
           <div className="bg-[#1e1e1e] p-6 text-center border-b border-gray-700 flex flex-col justify-center gap-2">
             <p className="text-gray-400 text-sm uppercase tracking-wider font-semibold">Amount to Pay</p>
             <h1 className="text-5xl font-black text-white tracking-tight">${total.toFixed(2)}</h1>
           </div>
 
-          {/* Payment Methods */}
           <div className="grid grid-cols-3 gap-2 p-4">
-            {["Cash", "UPI", "Card"].map(method => (
-              <button
-                key={method}
-                onClick={() => setPaymentMethod(method)}
-                className={`py-3 rounded-lg font-semibold text-sm transition-all border ${
-                  selectedPaymentMethod === method
-                    ? "bg-cafe-primary text-white border-cafe-primary shadow-md"
-                    : "bg-[#1e1e1e] text-gray-300 border-gray-600 hover:border-gray-400"
-                }`}
-              >
-                {method}
-              </button>
-            ))}
-          </div>
-
-          {/* Entered Amount */}
-          <div className="px-4 pb-4">
-            <div className="w-full bg-[#1e1e1e] border-2 border-gray-700 rounded-xl h-16 flex items-center justify-end px-4 overflow-hidden">
-              <span className={`text-3xl font-mono ${amountEntered ? "text-white" : "text-gray-600"}`}>
-                {amountEntered ? `$${amountEntered}` : "$0.00"}
-              </span>
-            </div>
-          </div>
-
-          {/* Numpad */}
-          <div className="flex-1 px-4 pb-4 overflow-hidden flex flex-col">
-            <div className="grid grid-cols-3 gap-2 flex-1 mb-2">
-              {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "00", "."].map(num => (
-                <button
-                  key={num}
-                  onClick={() => handleNumpadClick(num)}
-                  className="bg-[#2a2a2a] hover:bg-gray-700 rounded-xl text-xl font-semibold text-white border border-gray-700 shadow-sm transition-colors active:scale-95 flex items-center justify-center min-h-[48px]"
-                >
-                  {num}
-                </button>
-              ))}
-            </div>
-            <div className="grid grid-cols-2 gap-2 h-14">
-              <button 
-                onClick={() => handleNumpadClick("C")}
-                className="bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-bold transition-colors active:scale-95"
-              >
-                Clear
-              </button>
-              <button 
-                onClick={() => handleNumpadClick("Del")}
-                className="bg-cafe-danger hover:bg-red-700 text-white rounded-xl font-bold transition-colors active:scale-95 shadow-lg shadow-cafe-danger/20"
-              >
-                Del
-              </button>
-            </div>
-            
-            <button className="w-full bg-green-600 hover:bg-green-500 text-white font-bold text-xl py-4 rounded-xl mt-4 shadow-lg shadow-green-600/20 active:scale-95 transition-all">
-              Pay Order
+            <button onClick={() => setPaymentMethod("Cash")} className={`py-3 rounded-lg font-semibold text-sm transition-all border flex flex-col items-center gap-1 ${selectedPaymentMethod === "Cash" ? "bg-cafe-primary text-white border-cafe-primary shadow-md" : "bg-[#1e1e1e] text-gray-300 border-gray-600 hover:border-gray-400"}`}>
+              <Banknote size={20} /> Cash
             </button>
+            <button onClick={() => setPaymentMethod("UPI")} className={`py-3 rounded-lg font-semibold text-sm transition-all border flex flex-col items-center gap-1 ${selectedPaymentMethod === "UPI" ? "bg-cafe-primary text-white border-cafe-primary shadow-md" : "bg-[#1e1e1e] text-gray-300 border-gray-600 hover:border-gray-400"}`}>
+              <QrCode size={20} /> UPI
+            </button>
+            <button onClick={() => setPaymentMethod("Card")} className={`py-3 rounded-lg font-semibold text-sm transition-all border flex flex-col items-center gap-1 ${selectedPaymentMethod === "Card" ? "bg-cafe-primary text-white border-cafe-primary shadow-md" : "bg-[#1e1e1e] text-gray-300 border-gray-600 hover:border-gray-400"}`}>
+              <CardIcon size={20} /> Card
+            </button>
+          </div>
+
+          <div className="flex-1 px-4 pb-4 overflow-hidden flex flex-col">
+            {selectedPaymentMethod === "Cash" && (
+              <>
+                <div className="w-full bg-[#1e1e1e] border border-gray-700 rounded-xl p-3 mb-2 flex flex-col items-end justify-center">
+                  <span className="text-xs text-gray-400 uppercase font-semibold">Received</span>
+                  <span className={`text-2xl font-mono ${amountEntered ? "text-white" : "text-gray-600"}`}>
+                    {amountEntered ? `$${amountEntered}` : "$0.00"}
+                  </span>
+                </div>
+                <div className="w-full bg-[#1e1e1e] border border-gray-700 rounded-xl p-3 mb-4 flex flex-col items-end justify-center">
+                  <span className="text-xs text-gray-400 uppercase font-semibold">Change Due</span>
+                  <span className={`text-2xl font-mono ${changeDue > 0 ? "text-green-500" : "text-gray-600"}`}>
+                    ${changeDue.toFixed(2)}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 flex-1 mb-2">
+                  {["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "00", "."].map(num => (
+                    <button key={num} onClick={() => handleNumpadClick(num)} className="bg-[#2a2a2a] hover:bg-gray-700 rounded-xl text-xl font-semibold text-white border border-gray-700 shadow-sm transition-colors active:scale-95 flex items-center justify-center min-h-[48px]">
+                      {num}
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-2 h-14 mb-4">
+                  <button onClick={() => handleNumpadClick("C")} className="bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-bold transition-colors active:scale-95">Clear</button>
+                  <button onClick={() => handleNumpadClick("Del")} className="bg-cafe-danger hover:bg-red-700 text-white rounded-xl font-bold transition-colors active:scale-95">Del</button>
+                </div>
+                <button onClick={handlePaymentConfirm} disabled={!isCashValid || cart.length === 0} className="w-full bg-green-600 hover:bg-green-500 disabled:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xl py-4 rounded-xl shadow-lg transition-all active:scale-95">
+                  Confirm (Cash)
+                </button>
+              </>
+            )}
+
+            {selectedPaymentMethod === "UPI" && (
+              <div className="flex flex-col items-center justify-center h-full gap-6">
+                <div className="bg-white p-4 rounded-xl shadow-inner">
+                  <QRCodeCanvas value={`upi://pay?pa=cafepos@bank&pn=CafePOS&am=${total.toFixed(2)}`} size={180} />
+                </div>
+                <div className="text-center">
+                  <p className="text-gray-400 mb-1 text-sm">Scan to pay</p>
+                  <p className="text-2xl font-bold text-cafe-primary">${total.toFixed(2)}</p>
+                </div>
+                <div className="flex w-full gap-2 mt-auto">
+                  <button onClick={() => setPaymentMethod("Cash")} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-4 rounded-xl font-bold transition-colors">Cancel</button>
+                  <button onClick={handlePaymentConfirm} disabled={cart.length === 0} className="flex-1 bg-green-600 hover:bg-green-500 text-white py-4 rounded-xl font-bold transition-colors shadow-lg disabled:opacity-50">Confirm</button>
+                </div>
+              </div>
+            )}
+
+            {selectedPaymentMethod === "Card" && (
+              <div className="flex flex-col h-full">
+                <div className="flex-1 flex flex-col justify-center items-center gap-4">
+                  <CardIcon size={64} className="text-gray-600" />
+                  <p className="text-gray-400 text-center text-sm">Swipe or tap card on terminal, then enter the reference below.</p>
+                  <input 
+                    type="text" 
+                    placeholder="Transaction Reference" 
+                    value={txRef}
+                    onChange={(e) => setTxRef(e.target.value)}
+                    className="w-full bg-[#1e1e1e] border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cafe-primary text-center"
+                  />
+                </div>
+                <button onClick={handlePaymentConfirm} disabled={!txRef || cart.length === 0} className="w-full bg-green-600 hover:bg-green-500 disabled:bg-gray-700 disabled:opacity-50 text-white font-bold text-xl py-4 rounded-xl shadow-lg transition-all mt-auto">
+                  Confirm (Card)
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 }
+
