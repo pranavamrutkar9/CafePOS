@@ -1,41 +1,57 @@
-import { IFloor, ITable } from '@cafepos/shared-types';
+import { PrismaClient } from '@prisma/client';
 
-// TODO: Handle floors and tables database schema CRUD. Service has no req/res.
+const prisma = new PrismaClient();
 
 export class FloorTableService {
-  async getAllFloors(): Promise<IFloor[]> {
-    return [];
+  async getAllFloors() {
+    return prisma.floor.findMany({
+      include: {
+        tables: true,
+      },
+    });
   }
 
-  async getAllTables(): Promise<ITable[]> {
-    return [];
+  async getAllTables() {
+    return prisma.table.findMany({
+      include: {
+        floor: true,
+        orders: {
+          where: {
+            status: 'DRAFT', // Only get active orders
+          },
+        },
+      },
+    });
   }
 
-  async createFloor(data: any): Promise<IFloor> {
-    return {
-      id: 'mock-floor-id',
-      name: data.name || 'New Floor',
-    };
+  async createFloor(data: any) {
+    return prisma.floor.create({
+      data: {
+        name: data.name,
+      },
+    });
   }
 
-  async createTable(data: any): Promise<ITable> {
-    return {
-      id: 'mock-table-id',
-      name: data.name || 'New Table',
-      floorId: data.floorId || 'mock-floor-id',
-      capacity: data.capacity || 4,
-      status: 'AVAILABLE'
-    };
+  async createTable(data: any) {
+    return prisma.table.create({
+      data: {
+        number: data.number || data.name, // The shared types might use 'name' instead of 'number'
+        floorId: data.floorId,
+        seats: Number(data.capacity || data.seats || 4),
+        status: data.status || 'AVAILABLE',
+      },
+    });
   }
 
-  async updateTable(id: string, data: any): Promise<ITable> {
-    return {
-      id,
-      name: data.name || 'Updated Table',
-      floorId: data.floorId || 'mock-floor-id',
-      capacity: data.capacity || 4,
-      status: data.status || 'AVAILABLE',
-      currentOrderId: data.currentOrderId
-    };
+  async updateTable(id: string, data: any) {
+    return prisma.table.update({
+      where: { id },
+      data: {
+        number: data.number || data.name,
+        floorId: data.floorId,
+        seats: data.capacity || data.seats ? Number(data.capacity || data.seats) : undefined,
+        status: data.status,
+      },
+    });
   }
 }

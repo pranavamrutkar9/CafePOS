@@ -1,9 +1,11 @@
 import { Server, Socket } from 'socket.io';
 import { SocketEvent } from '@cafepos/shared-types';
 
-// TODO: Implement socket connection logic, room management, and KDS/Order subscription events
+let ioInstance: Server | null = null;
 
 export function initSocketIO(io: Server) {
+  ioInstance = io;
+
   io.on('connection', (socket: Socket) => {
     console.log(`Socket connected: ${socket.id}`);
 
@@ -21,4 +23,8 @@ export function initSocketIO(io: Server) {
       console.log(`Socket disconnected: ${socket.id}`);
     });
   });
+}
+
+export function getSocketIO(): Server | null {
+  return ioInstance;
 }

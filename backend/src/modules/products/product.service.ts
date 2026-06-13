@@ -1,46 +1,104 @@
-import { IProduct } from '@cafepos/shared-types';
+import { PrismaClient } from '@prisma/client';
 
-// TODO: Implement database operations for product records using PrismaClient. Service has no req/res.
+const prisma = new PrismaClient();
 
 export class ProductService {
-  async getAllProducts(): Promise<IProduct[]> {
-    // Mock get all
-    return [];
+  async getAllProducts() {
+    return prisma.product.findMany({
+      include: {
+        category: true,
+      },
+    });
   }
 
-  async getProductById(id: string): Promise<IProduct | null> {
-    // Mock get by id
-    return null;
+  async getProductById(id: string) {
+    return prisma.product.findUnique({
+      where: { id },
+      include: {
+        category: true,
+      },
+    });
   }
 
-  async createProduct(data: any): Promise<IProduct> {
-    // Mock create
-    return {
-      id: 'mock-new-product-id',
-      name: data.name || 'New Product',
-      price: data.price || 0,
-      categoryId: data.categoryId || 'mock-category-id',
-      isAvailable: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+  async createProduct(data: any) {
+    return prisma.product.create({
+      data: {
+        name: data.name,
+        categoryId: data.categoryId,
+        price: Number(data.price),
+        tax: Number(data.tax),
+        unit: data.unit,
+        description: data.description,
+        status: data.status || 'ACTIVE',
+      },
+      include: {
+        category: true,
+      },
+    });
   }
 
-  async updateProduct(id: string, data: any): Promise<IProduct> {
-    // Mock update
-    return {
-      id,
-      name: data.name || 'Updated Product',
-      price: data.price || 0,
-      categoryId: data.categoryId || 'mock-category-id',
-      isAvailable: data.isAvailable !== undefined ? data.isAvailable : true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+  async updateProduct(id: string, data: any) {
+    return prisma.product.update({
+      where: { id },
+      data: {
+        name: data.name,
+        categoryId: data.categoryId,
+        price: data.price ? Number(data.price) : undefined,
+        tax: data.tax ? Number(data.tax) : undefined,
+        unit: data.unit,
+        description: data.description,
+        status: data.status,
+      },
+      include: {
+        category: true,
+      },
+    });
   }
 
-  async deleteProduct(id: string): Promise<void> {
-    // Mock delete
-    return;
+  async deleteProduct(id: string) {
+    await prisma.product.delete({
+      where: { id },
+    });
+  }
+
+  async getUpsellSuggestions(productId: string) {
+    // 1. Find all orders containing this product
+    const orderItems = await prisma.orderItem.findMany({
+      where: { productId },
+      select: { orderId: true }
+    });
+    const orderIds = orderItems.map(oi => oi.orderId);
+
+    // 2. Find other products in these same orders
+    const coOccurringItems = await prisma.orderItem.findMany({
+      where: {
+        orderId: { in: orderIds },
+        productId: { not: productId }
+      },
+      include: { product: true }
+    });
+
+    // 3. Count frequencies
+    const frequencies: Record<string, { product: any, count: number }> = {};
+    for (const item of coOccurringItems) {
+      if (!frequencies[item.productId]) {
+        frequencies[item.productId] = { product: item.product, count: 0 };
+      }
+      frequencies[item.productId].count++;
+    }
+
+    // 4. Sort by highest frequency and return top 3
+    const sorted = Object.values(frequencies).sort((a, b) => b.count - a.count).slice(0, 3);
+    
+    // If no data, return random 3 products as fallback
+    if (sorted.length === 0) {
+      const fallback = await prisma.product.findMany({
+        where: { id: { not: productId } },
+        take: 3
+      });
+      return fallback;
+    }
+
+    return sorted.map(s => s.product);
   }
 }

@@ -1,13 +1,197 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// TODO: Define data models (User, Employee, Product, Category, Order, etc.) here per implementation plan
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
+}
+
+// Removed enum Role
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  password_hash String
+  role          String    @default("EMPLOYEE")
+  orders        Order[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  color     String?
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  name        String
+  categoryId  String
+  category    Category    @relation(fields: [categoryId], references: [id])
+  price       Float
+  tax         Float
+  unit        String
+  description String?
+  status      String
+  promotions  Promotion[]
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Floor {
+  id        String   @id @default(uuid())
+  name      String
+  tables    Table[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Removed enum TableStatus
+
+model Table {
+  id        String      @id @default(uuid())
+  number    String
+  seats     Int
+  floorId   String
+  floor     Floor       @relation(fields: [floorId], references: [id])
+  status    String      @default("AVAILABLE")
+  orders    Order[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  phone     String?
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Removed enum PaymentType
+
+model PaymentMethod {
+  id        String      @id @default(uuid())
+  type      String
+  enabled   Boolean     @default(true)
+  upiId     String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+// Removed enum DiscountType
+
+model Coupon {
+  id        String       @id @default(uuid())
+  code      String       @unique
+  type      String
+  value     Float
+  active    Boolean      @default(true)
+  orders    Order[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+// Removed enum PromotionScope
+
+model Promotion {
+  id         String         @id @default(uuid())
+  scope      String
+  type       String
+  value      Float
+  minQty     Int?
+  minAmount  Float?
+  active     Boolean        @default(true)
+  productId  String?
+  product    Product?       @relation(fields: [productId], references: [id])
+  startTime  String?        // Format: "14:00"
+  endTime    String?        // Format: "18:00"
+  daysOfWeek String?        // Format: "1,2,3,4,5" (comma separated)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+// Removed enum OrderStatus
+
+model Order {
+  id             String          @id @default(uuid())
+  tableId        String
+  table          Table           @relation(fields: [tableId], references: [id])
+  customerId     String?
+  customer       Customer?       @relation(fields: [customerId], references: [id])
+  employeeId     String
+  employee       User            @relation(fields: [employeeId], references: [id])
+  status         String          @default("DRAFT")
+  subtotal       Float
+  tax            Float
+  discount       Float
+  total          Float
+  couponId       String?
+  coupon         Coupon?         @relation(fields: [couponId], references: [id])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  items          OrderItem[]
+  kitchenTickets KitchenTicket[]
+}
+
+model OrderItem {
+  id           String              @id @default(uuid())
+  orderId      String
+  order        Order               @relation(fields: [orderId], references: [id])
+  productId    String
+  product      Product             @relation(fields: [productId], references: [id])
+  qty          Int
+  unitPrice    Float
+  lineTotal    Float
+  lineDiscount Float               @default(0)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  kitchenItems KitchenTicketItem[]
+}
+
+// Removed enum TicketStatus
+
+model KitchenTicket {
+  id        String              @id @default(uuid())
+  orderId   String
+  order     Order               @relation(fields: [orderId], references: [id])
+  status    String              @default("TO_COOK")
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  items     KitchenTicketItem[]
+}
+
+model KitchenTicketItem {
+  id          String        @id @default(uuid())
+  ticketId    String
+  ticket      KitchenTicket @relation(fields: [ticketId], references: [id])
+  orderItemId String
+  orderItem   OrderItem     @relation(fields: [orderItemId], references: [id])
+  completed   Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Session {
+  id            String    @id @default(uuid())
+  employeeId    String
+  employee      User      @relation(fields: [employeeId], references: [id])
+  openedAt      DateTime  @default(now())
+  closedAt      DateTime?
+  closingAmount Float?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }

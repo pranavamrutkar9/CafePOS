@@ -8,6 +8,7 @@ const router = Router();
 const controller = new KdsController();
 
 router.get('/tickets', authenticateJWT, controller.getActiveTickets);
+router.get('/load', controller.getLoad);
 router.put('/tickets/:id/status', authenticateJWT, controller.updateTicketStatus);
 
 export default router;

@@ -25,6 +25,15 @@ export class OrderController {
     }
   };
 
+  parseVoiceOrder = async (req: Request, res: Response) => {
+    try {
+      const items = await this.orderService.parseVoiceOrder(req.body.text || '');
+      return res.status(200).json(items);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  };
+
   create = async (req: Request, res: Response) => {
     try {
       const order = await this.orderService.createOrder(req.body);

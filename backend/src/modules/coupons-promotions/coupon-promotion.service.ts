@@ -1,41 +1,85 @@
-import { ICoupon, IPromotion } from '@cafepos/shared-types';
+import { PrismaClient } from '@prisma/client';
 
-// TODO: Handle Coupon and Promotion database operations via PrismaClient. Service has no req/res.
+const prisma = new PrismaClient();
 
 export class CouponPromotionService {
-  async getAllCoupons(): Promise<ICoupon[]> {
-    return [];
+  async getAllCoupons() {
+    return prisma.coupon.findMany();
   }
 
-  async createCoupon(data: any): Promise<ICoupon> {
-    return {
-      id: 'mock-coupon-id',
-      code: data.code || 'MOCK50',
-      discountType: data.discountType || 'PERCENTAGE',
-      discountValue: data.discountValue || 10,
-      minOrderValue: data.minOrderValue,
-      maxDiscount: data.maxDiscount,
-      isActive: true,
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-    };
+  async createCoupon(data: any) {
+    return prisma.coupon.create({ data });
   }
 
-  async getAllPromotions(): Promise<IPromotion[]> {
-    return [];
+  async getAllPromotions() {
+    return prisma.promotion.findMany({
+      include: { product: true }
+    });
   }
 
-  async createPromotion(data: any): Promise<IPromotion> {
-    return {
-      id: 'mock-promotion-id',
-      name: data.name || 'Mock Promo',
-      description: data.description || '',
-      discountType: data.discountType || 'FIXED',
-      discountValue: data.discountValue || 5,
-      isActive: true,
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
-      applicableProductIds: data.applicableProductIds || []
-    };
+  async createPromotion(data: any) {
+    return prisma.promotion.create({ data });
+  }
+
+  async getActivePromotions() {
+    const all = await prisma.promotion.findMany({
+      where: { active: true },
+      include: { product: true }
+    });
+
+    const now = new Date();
+    const currentDay = now.getDay();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    return all.filter(promo => {
+      // If no time bound, active
+      if (!promo.startTime || !promo.endTime) return true;
+
+      const [startH, startM] = promo.startTime.split(':').map(Number);
+      const [endH, endM] = promo.endTime.split(':').map(Number);
+      const startMinutes = startH * 60 + startM;
+      const endMinutes = endH * 60 + endM;
+
+      let dayMatches = true;
+      if (promo.daysOfWeek) {
+        const days = promo.daysOfWeek.split(',').map(Number);
+        if (days.length > 0) {
+          dayMatches = days.includes(currentDay);
+        }
+      }
+
+      const timeMatches = currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+
+      return dayMatches && timeMatches;
+    });
+  }
+
+  async applyPromotionsToCart(items: any[], subtotal: number) {
+    const activePromos = await this.getActivePromotions();
+    let orderDiscount = 0;
+    const updatedItems = [...items];
+
+    for (const promo of activePromos) {
+      // PRODUCT_QUANTITY trigger (using type mapping to minQty / productId)
+      if (promo.scope === 'PRODUCT' && promo.productId && promo.minQty) {
+        const item = updatedItems.find(i => i.productId === promo.productId);
+        if (item && item.qty >= promo.minQty) {
+          const discount = promo.type === 'PERCENTAGE'
+            ? item.lineTotal * (promo.value / 100)
+            : promo.value;
+          item.lineDiscount = discount;
+          item.lineTotal -= discount;
+        }
+      }
+
+      // ORDER_AMOUNT trigger
+      if (promo.scope === 'ORDER' && promo.minAmount && subtotal >= promo.minAmount) {
+        orderDiscount += promo.type === 'PERCENTAGE'
+          ? subtotal * (promo.value / 100)
+          : promo.value;
+      }
+    }
+
+    return { items: updatedItems, orderDiscount };
   }
 }

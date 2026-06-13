@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import { CouponPromotionService } from './coupon-promotion.service';
 
-// TODO: Handle HTTP requests for Coupons and Promotions. Controller contains no DB queries.
-
 export class CouponPromotionController {
   private couponPromotionService = new CouponPromotionService();
 
@@ -27,6 +25,15 @@ export class CouponPromotionController {
   getPromotions = async (req: Request, res: Response) => {
     try {
       const promotions = await this.couponPromotionService.getAllPromotions();
+      return res.status(200).json(promotions);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  };
+
+  getActivePromotions = async (req: Request, res: Response) => {
+    try {
+      const promotions = await this.couponPromotionService.getActivePromotions();
       return res.status(200).json(promotions);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });

@@ -24,4 +24,13 @@ export class KdsController {
       return res.status(400).json({ error: error.message });
     }
   };
+
+  getLoad = async (req: Request, res: Response) => {
+    try {
+      const load = await this.kdsService.getLoad();
+      return res.status(200).json(load);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  };
 }

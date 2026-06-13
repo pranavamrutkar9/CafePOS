@@ -9,6 +9,7 @@ const controller = new OrderController();
 
 router.get('/', authenticateJWT, controller.getAll);
 router.get('/:id', authenticateJWT, controller.getById);
+router.post('/voice-parse', authenticateJWT, controller.parseVoiceOrder);
 router.post('/', authenticateJWT, controller.create);
 router.put('/:id', authenticateJWT, controller.update);
 

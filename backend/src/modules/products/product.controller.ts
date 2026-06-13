@@ -25,6 +25,15 @@ export class ProductController {
     }
   };
 
+  getUpsellSuggestions = async (req: Request, res: Response) => {
+    try {
+      const suggestions = await this.productService.getUpsellSuggestions(req.params.id);
+      return res.status(200).json(suggestions);
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  };
+
   create = async (req: Request, res: Response) => {
     try {
       const newProduct = await this.productService.createProduct(req.body);

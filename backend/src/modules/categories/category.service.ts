@@ -1,33 +1,47 @@
-import { ICategory } from '@cafepos/shared-types';
+import { PrismaClient } from '@prisma/client';
 
-// TODO: Handle category database interactions. Service has no req/res.
+const prisma = new PrismaClient();
 
 export class CategoryService {
-  async getAllCategories(): Promise<ICategory[]> {
-    return [];
+  async getAllCategories() {
+    return prisma.category.findMany({
+      include: {
+        products: true,
+      },
+    });
   }
 
-  async createCategory(data: any): Promise<ICategory> {
-    return {
-      id: 'mock-category-id',
-      name: data.name || 'New Category',
-      description: data.description || '',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+  async getCategoryById(id: string) {
+    return prisma.category.findUnique({
+      where: { id },
+      include: {
+        products: true,
+      },
+    });
   }
 
-  async updateCategory(id: string, data: any): Promise<ICategory> {
-    return {
-      id,
-      name: data.name || 'Updated Category',
-      description: data.description || '',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+  async createCategory(data: any) {
+    return prisma.category.create({
+      data: {
+        name: data.name,
+        color: data.color,
+      },
+    });
   }
 
-  async deleteCategory(id: string): Promise<void> {
-    return;
+  async updateCategory(id: string, data: any) {
+    return prisma.category.update({
+      where: { id },
+      data: {
+        name: data.name,
+        color: data.color,
+      },
+    });
+  }
+
+  async deleteCategory(id: string) {
+    await prisma.category.delete({
+      where: { id },
+    });
   }
 }
