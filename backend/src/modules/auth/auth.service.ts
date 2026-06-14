@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-const prisma = new PrismaClient();
+import { prisma } from '../../db/prisma';
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-prod';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'super-secret-refresh-key-change-in-prod';

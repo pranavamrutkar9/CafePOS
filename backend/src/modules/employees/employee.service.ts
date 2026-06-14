@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
-const prisma = new PrismaClient();
+import { prisma } from '../../db/prisma';
 
 export class EmployeeService {
   async getAllEmployees(): Promise<any[]> {

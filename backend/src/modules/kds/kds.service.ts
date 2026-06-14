@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import { getSocketIO } from '../../socket/index';
 
-const prisma = new PrismaClient();
+import { prisma } from '../../db/prisma';
 
 export class KdsService {
   async getTickets() {

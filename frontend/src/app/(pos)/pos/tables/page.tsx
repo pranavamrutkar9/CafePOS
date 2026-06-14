@@ -48,8 +48,12 @@ export default function POSTablesPage() {
   useEffect(() => {
     const initPage = async () => {
       try {
-        // 1. Fetch current session
-        const sessionRes = await api.get("/sessions/current");
+        // Fetch session + floors in parallel
+        const [sessionRes, floorsRes] = await Promise.all([
+          api.get("/sessions/current"),
+          api.get("/floors-tables/floors"),
+        ]);
+
         const currentSession = sessionRes.data;
         setActiveSession(currentSession);
 
@@ -62,8 +66,6 @@ export default function POSTablesPage() {
         // Join the session room for real-time table status updates
         joinSessionRoom(currentSession.id);
 
-        // 2. Fetch floors and tables
-        const floorsRes = await api.get("/floors-tables/floors");
         const floorsData = floorsRes.data || [];
         setFloors(floorsData);
         if (floorsData.length > 0) {
@@ -162,8 +164,8 @@ export default function POSTablesPage() {
     try {
       toast.loading("Loading order context...", { id: "table-click" });
       
-      // 1. Check if there's an existing draft order for this table
-      const ordersRes = await api.get(`/orders?tableId=${table.id}&status=DRAFT&limit=1`);
+      // 1. Check for an existing in-progress order for this table (DRAFT or ACTIVE)
+      const ordersRes = await api.get(`/orders?tableId=${table.id}&limit=1`);
       const existingOrders = ordersRes.data?.data || ordersRes.data || [];
 
       if (existingOrders.length > 0) {

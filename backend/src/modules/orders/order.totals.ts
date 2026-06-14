@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+import { prisma } from '../../db/prisma';
 
 /**
  * Recalculates order totals using the database-backed products, coupons, and promotions.

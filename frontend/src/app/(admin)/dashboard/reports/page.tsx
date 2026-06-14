@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { apiClient } from '@/lib/apiClient';
+import api from '@/api/axios';
 import { Download, Calendar, Users, ShoppingBag, FileText } from 'lucide-react';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -42,20 +42,20 @@ export default function ReportsPage() {
 
   useEffect(() => {
     // Fetch filter data
-    apiClient.get('/employees').then(data => setEmployees(data || [])).catch(() => {});
-    apiClient.get('/products').then(data => setProducts(data || [])).catch(() => {});
+    api.get('/employees').then(res => setEmployees(res.data || [])).catch(() => {});
+    api.get('/products').then(res => setProducts(res.data || [])).catch(() => {});
   }, []);
 
   useEffect(() => {
     const params = new URLSearchParams({ period, ...filters });
-    apiClient.get(`/reports?${params.toString()}`)
-      .then(setData)
+    api.get(`/reports?${params.toString()}`)
+      .then(res => setData(res.data))
       .catch((e) => console.error(e));
   }, [period, filters]);
 
   async function exportReport(format: 'pdf' | 'xls') {
     const params = new URLSearchParams({ period, ...filters, format });
-    window.open(`http://localhost:5000/api/reports/export?${params.toString()}`, '_blank');
+    window.open(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/reports/export?${params.toString()}`, '_blank');
   }
 
   if (!data) {

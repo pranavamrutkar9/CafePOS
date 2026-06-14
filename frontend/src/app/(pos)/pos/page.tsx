@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { 
   Coffee, Search, User, Compass, PlusSquare, Menu, LogOut, Package, Tags, 
@@ -11,8 +11,11 @@ import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import api from "@/api/axios";
 import toast from "react-hot-toast";
-import { QRCodeSVG } from "qrcode.react";
+import dynamic from "next/dynamic";
 import { HamburgerMenu } from "@/components/SharedMenu";
+
+// Lazy-load QR code library — only needed for UPI payment modal
+const QRCodeSVG = dynamic(() => import("qrcode.react").then(m => ({ default: m.QRCodeSVG })), { ssr: false });
 
 export default function POSPage() {
   return (
@@ -93,18 +96,18 @@ function POSPageContent() {
   const [receiptEmail, setReceiptEmail] = useState("");
   const [emailSending, setEmailSending] = useState(false);
 
-  // Load customers when modal opens or query changes
+  // Load customers when modal opens or query changes (debounced 300ms)
   useEffect(() => {
     if (customerModalOpen) {
-      const fetchCustomers = async () => {
+      const delayDebounce = setTimeout(async () => {
         try {
           const res = await api.get(`/customers?search=${searchCustomerQuery}`);
           setCustomersList(res.data || []);
         } catch (err) {
           console.error("Failed to load customers:", err);
         }
-      };
-      fetchCustomers();
+      }, 300);
+      return () => clearTimeout(delayDebounce);
     }
   }, [searchCustomerQuery, customerModalOpen]);
 
@@ -249,20 +252,19 @@ function POSPageContent() {
       try {
         setPageLoading(true);
 
-        // Verify session first
-        const sessionRes = await api.get("/sessions/current");
+        // Fetch session + catalog in parallel (not sequentially)
+        const [sessionRes, catsRes, prodsRes] = await Promise.all([
+          api.get("/sessions/current"),
+          api.get("/categories"),
+          api.get("/products"),
+        ]);
+
         const session = sessionRes.data;
         if (!session || session.status !== "OPEN") {
           toast.error("No open sales session found. Please initialize session first.");
           router.push("/session");
           return;
         }
-
-        // Fetch categories & products
-        const [catsRes, prodsRes] = await Promise.all([
-          api.get("/categories"),
-          api.get("/products")
-        ]);
 
         setCategories(catsRes.data || []);
         setProducts(prodsRes.data || []);

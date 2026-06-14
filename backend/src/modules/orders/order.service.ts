@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client';
 import { getSocketIO, emitToSession } from '../../socket/index';
 import { CouponPromotionService } from '../coupons-promotions/coupon-promotion.service';
 import { calculateOrderTotals } from './order.totals';
 import { sendThankYouEmail, sendReceiptEmail } from '../notifications/email';
 
-const prisma = new PrismaClient();
+import { prisma } from '../../db/prisma';
 
 export class OrderService {
   async getAllOrders(filters: any = {}) {
