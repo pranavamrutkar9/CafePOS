@@ -38,7 +38,10 @@ export class EmployeeController {
       await this.employeeService.deleteEmployee(req.params.id);
       return res.status(204).send();
     } catch (error: any) {
-      return res.status(400).json({ error: error.message });
+      if (error.message?.startsWith('CONFLICT:')) {
+        return res.status(409).json({ error: error.message.replace('CONFLICT: ', '') });
+      }
+      return res.status(500).json({ error: error.message });
     }
   };
 }

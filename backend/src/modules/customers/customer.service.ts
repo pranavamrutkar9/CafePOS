@@ -42,8 +42,15 @@ export class CustomerService {
   }
 
   async delete(id: string): Promise<void> {
-    await prisma.customer.delete({
-      where: { id }
-    });
+    try {
+      await prisma.customer.delete({
+        where: { id }
+      });
+    } catch (error: any) {
+      if (error.code === 'P2003') {
+        throw new Error('CONFLICT: Cannot delete customer because they have associated orders or bookings.');
+      }
+      throw error;
+    }
   }
 }

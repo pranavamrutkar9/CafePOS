@@ -50,6 +50,15 @@ export class SessionController {
       const { id } = req.params;
       const { closingCash } = req.body;
 
+      // Validate session exists and is open
+      const existing = await prisma.session.findUnique({ where: { id } });
+      if (!existing) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+      if (existing.status !== 'OPEN') {
+        return res.status(400).json({ error: 'Session is already closed' });
+      }
+
       const session = await prisma.session.update({
         where: { id },
         data: {

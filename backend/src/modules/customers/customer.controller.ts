@@ -71,6 +71,9 @@ export class CustomerController {
       await this.customerService.delete(id);
       return res.status(204).send();
     } catch (error: any) {
+      if (error.message?.startsWith('CONFLICT:')) {
+        return res.status(409).json({ error: error.message.replace('CONFLICT: ', '') });
+      }
       return res.status(500).json({ error: error.message });
     }
   };

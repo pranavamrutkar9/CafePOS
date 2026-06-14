@@ -92,7 +92,7 @@ export default function SessionLandingPage() {
         params: {
           sessionId: currentSession.id,
           status: "PAID",
-          limit: 200 // fetch all paid orders for session aggregates
+          limit: 10000 // Fetch all paid orders for the session — no artificial cap
         }
       });
       const data = res.data;

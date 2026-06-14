@@ -43,8 +43,8 @@ export class ProductService {
       data: {
         name: data.name,
         categoryId: data.categoryId,
-        price: data.price ? Number(data.price) : undefined,
-        tax: data.tax ? Number(data.tax) : undefined,
+        price: data.price !== undefined ? Number(data.price) : undefined,
+        tax: data.tax !== undefined ? Number(data.tax) : undefined,
         unit: data.unit,
         description: data.description,
         status: data.status,

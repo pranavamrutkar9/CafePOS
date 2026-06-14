@@ -76,8 +76,15 @@ export class EmployeeService {
   }
 
   async deleteEmployee(id: string): Promise<void> {
-    await prisma.user.delete({
-      where: { id }
-    });
+    try {
+      await prisma.user.delete({
+        where: { id }
+      });
+    } catch (error: any) {
+      if (error.code === 'P2003') {
+        throw new Error('CONFLICT: Cannot delete employee because they have associated orders or sessions. Disable the account instead.');
+      }
+      throw error;
+    }
   }
 }

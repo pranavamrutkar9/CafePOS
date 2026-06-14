@@ -86,6 +86,7 @@ export class ReportsService {
           }
         },
         employee: true,
+        customer: true,
         table: true
       },
     });
@@ -213,7 +214,7 @@ export class ReportsService {
         createdAt: o.createdAt,
         sessionId: o.sessionId ? o.sessionId.split('-')[0] : '—',
         tableName: o.table ? `Table ${o.table.number}` : 'POS Label',
-        customerName: o.customerId ? 'Customer' : 'Guest', // Fallback or retrieve
+        customerName: o.customer?.name || 'Guest',
         employeeName: o.employee ? o.employee.name : 'System'
       }));
 

@@ -12,6 +12,6 @@ router.get('/floors', controller.getFloors);
 router.get('/tables', controller.getTables);
 router.post('/floors', authenticateJWT, authorizeRoles('ADMIN'), controller.createFloor);
 router.post('/tables', authenticateJWT, authorizeRoles('ADMIN'), controller.createTable);
-router.put('/tables/:id', authenticateJWT, controller.updateTable);
+router.put('/tables/:id', authenticateJWT, authorizeRoles('ADMIN'), controller.updateTable);
 
 export default router;

@@ -157,19 +157,21 @@ export class OrderService {
     // Auto send to kitchen
     await this.sendOrderToKitchen(order.id);
 
-    // Update table status if table is OCCUPIED
-    const io = getSocketIO();
-    if (io) {
-      io.emit('table-updated', { tableId: data.tableId, status: 'OCCUPIED' });
-    }
-    if (data.sessionId) {
-      emitToSession(data.sessionId, 'table_occupied', { tableId: data.tableId });
-    }
+    // Update table status to OCCUPIED (only if order has a table)
+    if (data.tableId) {
+      const io = getSocketIO();
+      if (io) {
+        io.emit('table-updated', { tableId: data.tableId, status: 'OCCUPIED' });
+      }
+      if (data.sessionId) {
+        emitToSession(data.sessionId, 'table_occupied', { tableId: data.tableId });
+      }
 
-    await prisma.table.update({
-      where: { id: data.tableId },
-      data: { status: 'OCCUPIED' },
-    });
+      await prisma.table.update({
+        where: { id: data.tableId },
+        data: { status: 'OCCUPIED' },
+      });
+    }
 
     return order;
   }
@@ -290,16 +292,18 @@ export class OrderService {
     // Handle status changes for table occupancy
     const targetStatus = data.status || updated.status;
     if (targetStatus === 'PAID' || targetStatus === 'CANCELLED') {
-      await prisma.table.update({
-        where: { id: updated.tableId },
-        data: { status: 'AVAILABLE' },
-      });
-      const io = getSocketIO();
-      if (io) {
-        io.emit('table-updated', { tableId: updated.tableId, status: 'AVAILABLE' });
-      }
-      if (updated.sessionId) {
-        emitToSession(updated.sessionId, 'table_available', { tableId: updated.tableId });
+      if (updated.tableId) {
+        await prisma.table.update({
+          where: { id: updated.tableId },
+          data: { status: 'AVAILABLE' },
+        });
+        const io = getSocketIO();
+        if (io) {
+          io.emit('table-updated', { tableId: updated.tableId, status: 'AVAILABLE' });
+        }
+        if (updated.sessionId) {
+          emitToSession(updated.sessionId, 'table_available', { tableId: updated.tableId });
+        }
       }
 
       // Send the motivational "Thank You" email if it's a successful payment

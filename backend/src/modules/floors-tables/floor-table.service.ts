@@ -17,7 +17,7 @@ export class FloorTableService {
         floor: true,
         orders: {
           where: {
-            status: 'DRAFT', // Only get active orders
+            status: { in: ['DRAFT', 'ACTIVE'] }, // Get all in-progress orders
           },
         },
       },

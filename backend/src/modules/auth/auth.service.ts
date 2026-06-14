@@ -17,21 +17,22 @@ const generateTokens = (user: any) => {
 
 export class AuthService {
   async login(email: string, password: string) {
+    if (!email || !password) {
+      throw new Error('Email and password are required');
+    }
+
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       throw new Error('Invalid email or password');
     }
 
-    let isMatch = false;
-    try {
-      isMatch = await bcrypt.compare(password, user.password_hash);
-    } catch (e) {
-      if (user.password_hash === '$2b$10$xyz') {
-        isMatch = true;
-      }
+    if (user.disabled) {
+      throw new Error('Account is disabled. Please contact an administrator.');
     }
 
-    if (!isMatch && user.password_hash !== '$2b$10$xyz') {
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (!isMatch) {
       throw new Error('Invalid email or password');
     }
 
@@ -50,6 +51,10 @@ export class AuthService {
   }
 
   async signup(data: any) {
+    if (!data.name || !data.email || !data.password) {
+      throw new Error('Name, email, and password are required');
+    }
+
     const existingUser = await prisma.user.findUnique({ where: { email: data.email } });
     if (existingUser) {
       throw new Error('User with this email already exists');
@@ -58,12 +63,14 @@ export class AuthService {
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(data.password, salt);
 
+    // Public signup always creates EMPLOYEE accounts.
+    // Admins are created through the employee management endpoint by an existing admin.
     const user = await prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
         password_hash,
-        role: data.role || 'EMPLOYEE',
+        role: 'EMPLOYEE',
       },
     });
 
