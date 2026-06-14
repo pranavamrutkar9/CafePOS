@@ -20,6 +20,7 @@ import kdsRouter from './modules/kds/kds.routes';
 import reportsRouter from './modules/reports/reports.routes';
 import sessionRouter from './modules/sessions/session.routes';
 import bookingsRouter from './modules/bookings/bookings.routes';
+import paymentsRouter from './modules/payments/payments.routes';
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use('/api/kds', kdsRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/sessions', sessionRouter);
 app.use('/api/bookings', bookingsRouter);
+app.use('/api/payments', paymentsRouter);
 
 // Debug socket ticket emitter route
 app.post('/debug/emit-dummy-ticket', (req, res) => {

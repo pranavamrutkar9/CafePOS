@@ -40,6 +40,42 @@ interface Category {
   color: string | null;
 }
 
+const getProductImage = (name: string) => {
+  const images: Record<string, string> = {
+    "Cappuccino": "https://images.unsplash.com/photo-1511920170033-f8396924c348?w=300&h=300&fit=crop",
+    "Latte Macchiato": "https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?w=300&h=300&fit=crop",
+    "Iced Peach Tea": "https://images.unsplash.com/photo-1497534446932-c925b458314e?w=300&h=300&fit=crop",
+    "Espresso Single": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300&h=300&fit=crop",
+    "Fresh Mint Mojito": "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=300&h=300&fit=crop",
+    "Club Sandwich Deluxe": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Club_sandwich_at_Caf%C3%A9_Picnic.jpg/330px-Club_sandwich_at_Caf%C3%A9_Picnic.jpg",
+    "Joy Signature Burger": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/RedDot_Burger.jpg/330px-RedDot_Burger.jpg",
+    "French Fries Salted": "https://images.unsplash.com/photo-1576107232684-1279f3908594?w=300&h=300&fit=crop",
+    "Chocolate Lava Cake": "https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=300&h=300&fit=crop",
+    "Red Velvet Pastry": "https://images.unsplash.com/photo-1614145121029-83a9f7b68bf4?w=300&h=300&fit=crop",
+    "Blueberry Cheesecake": "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=300&h=300&fit=crop",
+    "Vanilla Ice Cream Scoop": "https://images.unsplash.com/photo-1557142046-c704a3adf364?w=300&h=300&fit=crop",
+    "Penne Arrabbiata Pasta": "https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=300&h=300&fit=crop",
+    "Wild Mushroom Risotto": "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=300&h=300&fit=crop",
+    "Margherita Pizza 9inch": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Pizza-3007395.jpg/330px-Pizza-3007395.jpg",
+    "Farmhouse Pizza 9inch": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=300&h=300&fit=crop",
+    "Burger & Mojito Combo": "https://images.unsplash.com/photo-1610440042657-612c34d95e9f?w=300&h=300&fit=crop",
+    "Coffee & Cheesecake Combo": "https://images.unsplash.com/photo-1495474472204-51ea154817bd?w=300&h=300&fit=crop",
+    
+    // Custom Demo Entities
+    "Paneer Tikka Roll": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Kolkata_Rolls.jpg/330px-Kolkata_Rolls.jpg",
+    "Cheese Garlic Bread": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Garlicbread.jpg/330px-Garlicbread.jpg",
+    "Crispy Onion Rings": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/OnionRings.JPG/330px-OnionRings.JPG",
+    "Chicken Nuggets": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Chicken_Nuggets.jpg/330px-Chicken_Nuggets.jpg",
+    "Nachos with Cheese": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Nachos-cheese.jpg/330px-Nachos-cheese.jpg",
+    "Veg Spring Rolls": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Spring_Rolls_%283357696061%29.jpg/330px-Spring_Rolls_%283357696061%29.jpg"
+  };
+  
+  if (images[name]) return images[name];
+  
+  // Safe, generic food fallback instead of random weird images
+  return "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&h=300&fit=crop";
+};
+
 function POSPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -567,16 +603,21 @@ function POSPageContent() {
                     <button 
                       key={product.id} 
                       onClick={() => handleAddItem(product)}
-                      className="bg-white p-4 rounded-2xl border border-[#EFECE7] hover:border-[#C86A50] shadow-sm hover:shadow-md transition-all text-left flex flex-col justify-between aspect-square group relative"
+                      className="bg-white p-3 rounded-2xl border border-[#EFECE7] hover:border-[#C86A50] shadow-sm hover:shadow-md transition-all text-left flex flex-col group relative overflow-hidden h-[180px] w-full"
                     >
-                      <div className="flex justify-between items-start w-full">
+                      <div className="relative w-full h-[60%] rounded-xl overflow-hidden mb-3 shrink-0">
+                        <img 
+                          src={getProductImage(product.name)} 
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
                         <span 
-                          className="w-2.5 h-2.5 rounded-full" 
+                          className="absolute top-2 left-2 w-2.5 h-2.5 rounded-full shadow-sm border border-white" 
                           style={{ backgroundColor: cat?.color || "#6B7280" }}
                         />
                       </div>
-                      <div>
-                        <h3 className="font-bold text-xs text-[#2C2623] mb-1.5 leading-snug group-hover:text-[#C86A50] transition-colors line-clamp-2">{product.name}</h3>
+                      <div className="flex-1 flex flex-col justify-end w-full">
+                        <h3 className="font-bold text-xs text-[#2C2623] mb-1 leading-snug group-hover:text-[#C86A50] transition-colors line-clamp-2">{product.name}</h3>
                         <p className="font-extrabold text-xs text-[#8e827b]">₹{product.price}</p>
                       </div>
                     </button>
