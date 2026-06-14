@@ -1,5 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv';
+import path from 'path';
+
+dotenv.config({ path: path.join(__dirname, '../../../.env') });
 
 const prisma = new PrismaClient();
 
@@ -77,37 +81,67 @@ async function main() {
     data: { name: 'Combos', color: '#6366F1' }, // Indigo
   });
 
-  // 4. Seed 20 Products distributed across categories, varied prices/tax
+  // 4. Seed 50 Products distributed across categories, varied prices/tax
   const productsData = [
-    // Beverages
+    // Beverages (10)
     { name: 'Cappuccino', price: 250, tax: 5, unit: 'cup', categoryId: catBeverages.id, status: 'ACTIVE' },
     { name: 'Latte Macchiato', price: 280, tax: 5, unit: 'cup', categoryId: catBeverages.id, status: 'ACTIVE' },
     { name: 'Iced Peach Tea', price: 180, tax: 5, unit: 'glass', categoryId: catBeverages.id, status: 'ACTIVE' },
     { name: 'Espresso Single', price: 120, tax: 5, unit: 'shot', categoryId: catBeverages.id, status: 'ACTIVE' },
     { name: 'Fresh Mint Mojito', price: 220, tax: 5, unit: 'glass', categoryId: catBeverages.id, status: 'ACTIVE' },
+    { name: 'Hot Chocolate', price: 200, tax: 5, unit: 'cup', categoryId: catBeverages.id, status: 'ACTIVE' },
+    { name: 'Cold Brew Coffee', price: 260, tax: 5, unit: 'glass', categoryId: catBeverages.id, status: 'ACTIVE' },
+    { name: 'Strawberry Milkshake', price: 240, tax: 5, unit: 'glass', categoryId: catBeverages.id, status: 'ACTIVE' },
+    { name: 'Mango Smoothie', price: 250, tax: 5, unit: 'glass', categoryId: catBeverages.id, status: 'ACTIVE' },
+    { name: 'Matcha Green Tea Latte', price: 290, tax: 5, unit: 'cup', categoryId: catBeverages.id, status: 'ACTIVE' },
     
-    // Quick Bites
+    // Quick Bites (10)
     { name: 'Club Sandwich Deluxe', price: 350, tax: 5, unit: 'plate', categoryId: catSnacks.id, status: 'ACTIVE' },
     { name: 'Joy Signature Burger', price: 450, tax: 5, unit: 'piece', categoryId: catSnacks.id, status: 'ACTIVE' },
     { name: 'French Fries Salted', price: 150, tax: 5, unit: 'basket', categoryId: catSnacks.id, status: 'ACTIVE' },
     { name: 'Paneer Tikka Roll', price: 280, tax: 5, unit: 'piece', categoryId: catSnacks.id, status: 'ACTIVE' },
     { name: 'Cheese Garlic Bread', price: 190, tax: 5, unit: 'plate', categoryId: catSnacks.id, status: 'ACTIVE' },
+    { name: 'Crispy Onion Rings', price: 180, tax: 5, unit: 'basket', categoryId: catSnacks.id, status: 'ACTIVE' },
+    { name: 'Chicken Nuggets', price: 250, tax: 5, unit: 'plate', categoryId: catSnacks.id, status: 'ACTIVE' },
+    { name: 'Nachos with Cheese', price: 320, tax: 5, unit: 'plate', categoryId: catSnacks.id, status: 'ACTIVE' },
+    { name: 'Veg Spring Rolls', price: 210, tax: 5, unit: 'plate', categoryId: catSnacks.id, status: 'ACTIVE' },
+    { name: 'Spicy Potato Wedges', price: 170, tax: 5, unit: 'basket', categoryId: catSnacks.id, status: 'ACTIVE' },
 
-    // Desserts
+    // Desserts (10)
     { name: 'Chocolate Lava Cake', price: 200, tax: 5, unit: 'piece', categoryId: catDesserts.id, status: 'ACTIVE' },
     { name: 'Red Velvet Pastry', price: 220, tax: 5, unit: 'slice', categoryId: catDesserts.id, status: 'ACTIVE' },
     { name: 'Blueberry Cheesecake', price: 260, tax: 5, unit: 'slice', categoryId: catDesserts.id, status: 'ACTIVE' },
     { name: 'Vanilla Ice Cream Scoop', price: 90, tax: 5, unit: 'scoop', categoryId: catDesserts.id, status: 'ACTIVE' },
+    { name: 'Tiramisu', price: 280, tax: 5, unit: 'slice', categoryId: catDesserts.id, status: 'ACTIVE' },
+    { name: 'Apple Pie', price: 240, tax: 5, unit: 'slice', categoryId: catDesserts.id, status: 'ACTIVE' },
+    { name: 'Caramel Custard', price: 180, tax: 5, unit: 'bowl', categoryId: catDesserts.id, status: 'ACTIVE' },
+    { name: 'Brownie with Ice Cream', price: 250, tax: 5, unit: 'plate', categoryId: catDesserts.id, status: 'ACTIVE' },
+    { name: 'Lemon Tart', price: 190, tax: 5, unit: 'piece', categoryId: catDesserts.id, status: 'ACTIVE' },
+    { name: 'Strawberry Macarons', price: 300, tax: 5, unit: 'box', categoryId: catDesserts.id, status: 'ACTIVE' },
 
-    // Main Course
+    // Main Course (10)
     { name: 'Penne Arrabbiata Pasta', price: 420, tax: 5, unit: 'plate', categoryId: catMainCourse.id, status: 'ACTIVE' },
     { name: 'Wild Mushroom Risotto', price: 480, tax: 5, unit: 'plate', categoryId: catMainCourse.id, status: 'ACTIVE' },
     { name: 'Margherita Pizza 9inch', price: 390, tax: 5, unit: 'piece', categoryId: catMainCourse.id, status: 'ACTIVE' },
     { name: 'Farmhouse Pizza 9inch', price: 490, tax: 5, unit: 'piece', categoryId: catMainCourse.id, status: 'ACTIVE' },
+    { name: 'Grilled Chicken Steak', price: 550, tax: 5, unit: 'plate', categoryId: catMainCourse.id, status: 'ACTIVE' },
+    { name: 'Spaghetti Carbonara', price: 460, tax: 5, unit: 'plate', categoryId: catMainCourse.id, status: 'ACTIVE' },
+    { name: 'Chicken Tikka Masala', price: 520, tax: 5, unit: 'bowl', categoryId: catMainCourse.id, status: 'ACTIVE' },
+    { name: 'Veg Hakka Noodles', price: 340, tax: 5, unit: 'plate', categoryId: catMainCourse.id, status: 'ACTIVE' },
+    { name: 'Thai Green Curry', price: 480, tax: 5, unit: 'bowl', categoryId: catMainCourse.id, status: 'ACTIVE' },
+    { name: 'Mutton Biryani', price: 580, tax: 5, unit: 'plate', categoryId: catMainCourse.id, status: 'ACTIVE' },
 
-    // Combos
+    // Combos (10)
     { name: 'Burger & Mojito Combo', price: 600, tax: 5, unit: 'combo', categoryId: catCombos.id, status: 'ACTIVE' },
     { name: 'Coffee & Cheesecake Combo', price: 450, tax: 5, unit: 'combo', categoryId: catCombos.id, status: 'ACTIVE' },
+    { name: 'Pizza & Cola Combo', price: 500, tax: 5, unit: 'combo', categoryId: catCombos.id, status: 'ACTIVE' },
+    { name: 'Pasta & Garlic Bread Combo', price: 550, tax: 5, unit: 'combo', categoryId: catCombos.id, status: 'ACTIVE' },
+    { name: 'Sandwich & Fries Combo', price: 480, tax: 5, unit: 'combo', categoryId: catCombos.id, status: 'ACTIVE' },
+    { name: 'Burger & Shake Combo', price: 650, tax: 5, unit: 'combo', categoryId: catCombos.id, status: 'ACTIVE' },
+    { name: 'Steak & Wine Combo', price: 1200, tax: 5, unit: 'combo', categoryId: catCombos.id, status: 'ACTIVE' },
+    { name: 'Biryani & Kebab Combo', price: 850, tax: 5, unit: 'combo', categoryId: catCombos.id, status: 'ACTIVE' },
+    { name: 'Wrap & Lemonade Combo', price: 420, tax: 5, unit: 'combo', categoryId: catCombos.id, status: 'ACTIVE' },
+    { name: 'Nuggets & Fries Combo', price: 380, tax: 5, unit: 'combo', categoryId: catCombos.id, status: 'ACTIVE' },
   ];
 
   const products: any[] = [];
