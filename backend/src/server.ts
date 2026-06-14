@@ -22,7 +22,7 @@ import sessionRouter from './modules/sessions/session.routes';
 import bookingsRouter from './modules/bookings/bookings.routes';
 import paymentsRouter from './modules/payments/payments.routes';
 
-dotenv.config();
+dotenv.config({ path: require('path').resolve(__dirname, '../../.env') });
 
 const app = express();
 const server = http.createServer(app);

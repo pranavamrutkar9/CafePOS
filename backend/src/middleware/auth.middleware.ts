@@ -12,8 +12,7 @@ export async function authenticateJWT(req: Request, res: Response, next: NextFun
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
       
-      const { PrismaClient } = require('@prisma/client');
-      const prisma = new PrismaClient();
+      const { prisma } = require('../db/prisma');
       
       const user = await prisma.user.findUnique({
         where: { id: decoded.id }

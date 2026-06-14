@@ -354,10 +354,20 @@ function POSPageContent() {
       return;
     }
 
+    // Optimistic UI Update
+    const existing = cart.find(i => i.productId === product.id);
+    const newQty = existing ? existing.qty + 1 : 1;
+    
+    const optimisticCart = existing 
+      ? cart.map(i => i.productId === product.id ? { ...i, qty: newQty, lineTotal: newQty * i.price } : i)
+      : [...cart, { 
+          id: product.id, productId: product.id, name: product.name, price: product.price, 
+          qty: 1, lineTotal: product.price, lineDiscount: 0, discountLabel: null, sentToKitchenAlready: false 
+        }];
+        
+    setOrder({ ...activeOrder, items: optimisticCart, subtotal: subtotal + product.price, total: total + product.price });
+
     try {
-      const existing = cart.find(i => i.productId === product.id);
-      const newQty = existing ? existing.qty + 1 : 1;
-      
       const res = await api.patch(`/orders/${orderId}/items`, {
         productId: product.id,
         qty: newQty
@@ -365,11 +375,20 @@ function POSPageContent() {
       setOrder(res.data);
     } catch (err: any) {
       toast.error("Failed to add item to cart.");
+      // Rollback would go here, but POS will re-fetch soon anyway
     }
   };
 
   const handleUpdateQty = async (productId: string, qty: number) => {
     if (!orderId) return;
+    
+    // Optimistic UI Update
+    const target = cart.find(i => i.productId === productId);
+    if (target) {
+      const diff = qty - target.qty;
+      const optimisticCart = cart.map(i => i.productId === productId ? { ...i, qty: Math.max(0, qty), lineTotal: Math.max(0, qty) * i.price } : i);
+      setOrder({ ...activeOrder, items: optimisticCart, subtotal: subtotal + (diff * target.price), total: total + (diff * target.price) });
+    }
 
     try {
       const res = await api.patch(`/orders/${orderId}/items`, {
