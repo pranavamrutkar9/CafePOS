@@ -311,7 +311,7 @@ export default function CustomersPage() {
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 py-2.5 btn-terracotta rounded-xl font-bold cursor-pointer text-xs"
+                  className="btn-primary flex-1 justify-center"
                 >
                   Save
                 </button>

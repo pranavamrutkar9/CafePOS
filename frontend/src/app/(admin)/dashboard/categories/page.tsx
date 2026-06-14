@@ -20,7 +20,7 @@ export default function CategoriesPage() {
         <h1 className="text-2xl font-bold text-cafe-text">Categories</h1>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="btn-terracotta px-4 py-2.5 rounded-xl font-medium flex items-center gap-2"
+          className="btn-primary"
         >
           <Plus size={20} />
           Add Category
@@ -120,7 +120,7 @@ export default function CategoriesPage() {
               >
                 Cancel
               </button>
-              <button className="flex-1 px-4 py-2.5 btn-terracotta rounded-xl font-medium cursor-pointer">
+              <button className="btn-primary flex-1 justify-center">
                 Save Category
               </button>
             </div>

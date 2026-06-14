@@ -948,7 +948,7 @@ function POSPageContent() {
                   <button 
                     type="submit" 
                     disabled={newCustomerLoading}
-                    className="w-full py-2.5 btn-terracotta rounded-xl font-bold text-xs cursor-pointer active:scale-98 disabled:opacity-50 mt-4"
+                    className="btn-primary w-full justify-center"
                   >
                     {newCustomerLoading ? "Saving..." : "Create & Select"}
                   </button>
@@ -1022,7 +1022,7 @@ function POSPageContent() {
               </button>
               <button 
                 onClick={() => handleApplyCoupon(couponCodeInput)}
-                className="flex-1 py-2.5 btn-terracotta rounded-xl font-bold cursor-pointer active:scale-98"
+                className="btn-primary flex-1 justify-center"
               >
                 Apply Code
               </button>
@@ -1153,7 +1153,7 @@ function POSPageContent() {
                   (selectedPayment === "CARD" && !cardTxnRefInput.trim()) ||
                   (selectedPayment === "UPI" && !upiPaymentMethod)
                 }
-                className="flex-1 py-2.5 btn-terracotta rounded-xl font-bold cursor-pointer active:scale-98 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="btn-primary flex-1 justify-center"
               >
                 {checkoutLoading ? "Processing..." : "Confirm Payment"}
               </button>

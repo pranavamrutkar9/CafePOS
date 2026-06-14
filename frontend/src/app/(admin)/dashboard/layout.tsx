@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
+import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
+import api from "@/api/axios";
+import {
   LogOut,
-  Search,
-  Bell,
-  UserCircle
+  UserCircle,
 } from "lucide-react";
 import { MENU_ITEMS } from "@/components/SharedMenu";
 
@@ -16,35 +17,110 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const [sessionOpen, setSessionOpen] = useState<boolean | null>(null);
 
-  const navItems = MENU_ITEMS;
+  useEffect(() => {
+    api.get("/sessions/current")
+      .then((res) => setSessionOpen(res.data?.status === "OPEN"))
+      .catch(() => setSessionOpen(false));
+  }, []);
 
   return (
-    <div className="min-h-screen flex bg-[#faf8f5] text-[#2c2623]">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-[#efece7] flex flex-col z-10 relative">
-        <div className="h-16 flex items-center px-6 border-b border-[#efece7]">
-          <div className="w-8 h-8 bg-gradient-to-tr from-[#c86a50] to-[#b3563d] rounded-lg text-white flex items-center justify-center font-bold mr-3 shadow-sm">
-            O
+    <div className="min-h-screen flex" style={{ background: "var(--bg-page)" }}>
+      {/* ── Sidebar ──────────────────────────────────────────── */}
+      <aside
+        className="flex flex-col z-20 relative shrink-0"
+        style={{
+          width: "var(--sidebar-width)",
+          background: "var(--espresso-900)",
+          minHeight: "100vh",
+        }}
+      >
+        {/* Logo */}
+        <div
+          className="flex items-center gap-3 px-5"
+          style={{
+            height: "var(--topbar-height)",
+            borderBottom: "1px solid var(--espresso-700)",
+          }}
+        >
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-base shrink-0"
+            style={{
+              background: "var(--accent-500)",
+              color: "var(--espresso-900)",
+              fontFamily: "var(--font-display)",
+            }}
+          >
+            ☕
           </div>
-          <span className="font-extrabold text-lg text-[#2c2623] tracking-tight">Cafe Admin</span>
+          <span
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: "var(--text-lg)",
+              color: "var(--text-on-dark)",
+            }}
+          >
+            Cafe POS
+          </span>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-4 organic-scrollbar">
-          <ul className="space-y-1 px-3">
-            {navItems.map((item) => {
-              const isActive = pathname.startsWith(item.href);
+        {/* Nav Items */}
+        <nav className="flex-1 overflow-y-auto py-3 organic-scrollbar">
+          <ul className="space-y-0.5 px-3">
+            {MENU_ITEMS.map((item) => {
+              const isActive =
+                item.href === "/kds"
+                  ? pathname === "/kds"
+                  : pathname.startsWith(item.href);
               return (
                 <li key={item.name}>
                   <Link
                     href={item.href}
-                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      isActive 
-                        ? "bg-[#c86a50]/8 text-[#c86a50]" 
-                        : "text-[#8e827b] hover:bg-[#faf8f5] hover:text-[#2c2623]"
-                    }`}
+                    className="flex items-center gap-3 px-3 rounded-lg transition-all duration-150"
+                    style={{
+                      height: "40px",
+                      fontSize: "var(--text-sm)",
+                      fontFamily: "var(--font-sans)",
+                      fontWeight: 500,
+                      color: isActive
+                        ? "var(--accent-500)"
+                        : "var(--text-on-dark-muted)",
+                      background: isActive
+                        ? "var(--espresso-800)"
+                        : "transparent",
+                      borderLeft: isActive
+                        ? "3px solid var(--accent-500)"
+                        : "3px solid transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        (e.currentTarget as HTMLElement).style.background =
+                          "var(--espresso-800)";
+                        (e.currentTarget as HTMLElement).style.color =
+                          "var(--text-on-dark)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        (e.currentTarget as HTMLElement).style.background =
+                          "transparent";
+                        (e.currentTarget as HTMLElement).style.color =
+                          "var(--text-on-dark-muted)";
+                      }
+                    }}
                   >
-                    <item.icon size={18} className={isActive ? "text-[#c86a50]" : "text-[#8e827b]"} />
+                    <item.icon
+                      size={18}
+                      style={{
+                        color: isActive
+                          ? "var(--accent-500)"
+                          : "var(--text-on-dark-muted)",
+                        flexShrink: 0,
+                      }}
+                    />
                     {item.name}
                   </Link>
                 </li>
@@ -53,48 +129,138 @@ export default function DashboardLayout({
           </ul>
         </nav>
 
-        <div className="p-4 border-t border-[#efece7]">
+        {/* Log Out */}
+        <div
+          className="p-3"
+          style={{ borderTop: "1px solid var(--espresso-700)" }}
+        >
           <Link
             href="/session"
-            className="flex items-center gap-3 px-3.5 py-2.5 text-[#d3524b] hover:bg-[#d3524b]/5 rounded-xl transition-colors font-bold text-xs"
+            className="flex items-center gap-3 px-3 rounded-lg transition-all duration-150"
+            style={{
+              height: "40px",
+              fontSize: "var(--text-sm)",
+              fontFamily: "var(--font-sans)",
+              fontWeight: 500,
+              color: "var(--text-on-dark-muted)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background =
+                "var(--espresso-800)";
+              (e.currentTarget as HTMLElement).style.color =
+                "var(--status-danger)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "transparent";
+              (e.currentTarget as HTMLElement).style.color =
+                "var(--text-on-dark-muted)";
+            }}
           >
-            <LogOut size={18} />
+            <LogOut size={18} style={{ flexShrink: 0 }} />
             Exit Dashboard
           </Link>
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* ── Main Content ─────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar */}
-        <header className="h-16 bg-white border-b border-[#efece7] flex items-center justify-between px-8 z-0 relative">
-          <div className="max-w-md w-full relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8e827b]" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              className="w-full bg-[#faf8f5] border border-[#e6e1da] rounded-full py-1.5 pl-10 pr-4 text-xs focus:outline-none focus:border-[#c86a50] focus:ring-1 focus:ring-[#c86a50]/20 text-[#2c2623] placeholder-[#a09690]"
-            />
-          </div>
+        <header
+          className="flex items-center justify-between px-8 shrink-0"
+          style={{
+            height: "var(--topbar-height)",
+            background: "var(--bg-surface)",
+            borderBottom: "1px solid var(--border)",
+          }}
+        >
+          {/* Page title injected by children via <title> or we show route */}
+          <h1
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: "var(--text-xl)",
+              color: "var(--text-primary)",
+            }}
+          >
+            {MENU_ITEMS.find(
+              (i) => i.href !== "/kds" && pathname.startsWith(i.href)
+            )?.name ?? "Dashboard"}
+          </h1>
 
-          <div className="flex items-center gap-6">
-            <button className="relative p-2 text-[#8e827b] hover:text-[#2c2623] transition-colors cursor-pointer">
-              <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#d3524b] rounded-full border border-white"></span>
-            </button>
-            <div className="w-px h-6 bg-[#efece7]"></div>
-            <div className="flex items-center gap-2.5 cursor-pointer">
+          <div className="flex items-center gap-4">
+            {/* Session indicator */}
+            <div
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full"
+              style={{
+                background: "var(--bg-subtle)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              <span
+                className="rounded-full shrink-0"
+                style={{
+                  width: 8,
+                  height: 8,
+                  background:
+                    sessionOpen === null
+                      ? "var(--status-neutral)"
+                      : sessionOpen
+                      ? "var(--status-success)"
+                      : "var(--status-neutral)",
+                }}
+              />
+              <span
+                style={{
+                  fontSize: "var(--text-sm)",
+                  color: "var(--text-secondary)",
+                  fontFamily: "var(--font-sans)",
+                }}
+              >
+                {sessionOpen === null
+                  ? "Checking…"
+                  : sessionOpen
+                  ? "Session Open"
+                  : "No Session"}
+              </span>
+            </div>
+
+            <div style={{ width: 1, height: 24, background: "var(--border)" }} />
+
+            {/* Employee name */}
+            <div className="flex items-center gap-2">
               <div className="text-right hidden md:block">
-                <p className="text-xs font-bold text-[#2c2623] leading-tight">Admin User</p>
-                <p className="text-[10px] text-[#8e827b] font-medium">Super Admin</p>
+                <p
+                  style={{
+                    fontSize: "var(--text-sm)",
+                    fontWeight: 600,
+                    color: "var(--text-primary)",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {user?.name ?? "Employee"}
+                </p>
+                <p
+                  style={{
+                    fontSize: "var(--text-xs)",
+                    color: "var(--text-tertiary)",
+                  }}
+                >
+                  {user?.role ?? ""}
+                </p>
               </div>
-              <UserCircle size={32} className="text-[#8e827b]" />
+              <UserCircle
+                size={32}
+                style={{ color: "var(--text-tertiary)" }}
+              />
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-8 bg-[#faf8f5] organic-scrollbar">
+        <main
+          className="flex-1 overflow-y-auto p-8 organic-scrollbar"
+          style={{ background: "var(--bg-page)" }}
+        >
           {children}
         </main>
       </div>

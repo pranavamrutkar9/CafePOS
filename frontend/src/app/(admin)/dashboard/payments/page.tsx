@@ -126,7 +126,7 @@ export default function PaymentMethodsPage() {
         </div>
         <button 
           onClick={handleAddField}
-          className="btn-terracotta px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+          className="btn-primary"
         >
           <Plus size={15} /> Add Method
         </button>
@@ -233,7 +233,7 @@ export default function PaymentMethodsPage() {
             <button 
               onClick={handleSaveChanges}
               disabled={saving}
-              className="btn-terracotta px-6 py-2.5 rounded-xl font-bold cursor-pointer text-xs"
+              className="btn-primary"
             >
               {saving ? "Saving Changes..." : "Save Changes"}
             </button>

@@ -311,57 +311,34 @@ export default function KDSPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#FAF8F5] overflow-hidden text-[#2C2623] font-sans">
+    <div className="flex flex-col h-screen w-screen overflow-hidden" style={{ background: "var(--bg-page)", fontFamily: "var(--font-sans)" }}>
       
       {/* 1. TOP BAR */}
-      <header className="h-16 bg-white border-b border-[#EFECE7] flex items-center justify-between px-6 shrink-0 z-40 shadow-sm">
+      <header className="flex items-center justify-between px-6 shrink-0 z-40" style={{ height: "var(--topbar-height)", background: "var(--espresso-900)", borderBottom: "1px solid var(--espresso-700)" }}>
         
-        {/* Brand/Logo & Page Name */}
-        <div className="flex items-center gap-4">
-          <Link href="/pos" className="flex items-center gap-2.5 font-black text-2xl tracking-tight">
-            <span className="w-8 h-8 bg-gradient-to-tr from-[#C86A50] to-[#B3563d] rounded-lg text-white flex items-center justify-center text-sm shadow-sm">C</span>
-            <span>Cafe<span className="text-[#C86A50]">POS</span></span>
+        {/* Brand */}
+        <div className="flex items-center gap-3">
+          <Link href="/pos" className="flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold" style={{ background: "var(--accent-500)", color: "var(--espresso-900)" }}>☕</span>
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "var(--text-lg)", color: "var(--text-on-dark)" }}>Cafe POS</span>
           </Link>
-          <span className="h-5 w-px bg-[#EFECE7]"></span>
-          <span className="bg-[#FAF8F5] border border-[#E6E1DA] text-[#C86A50] font-black text-xs px-3 py-1 rounded-full uppercase tracking-wider shadow-inner">
-            KDS
-          </span>
+          <span style={{ width: 1, height: 20, background: "var(--espresso-700)", display: "inline-block" }} />
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "var(--text-sm)", color: "var(--accent-500)" }}>KDS</span>
         </div>
 
-        {/* Action Controls (Matched to POS Layout Icons) */}
+        {/* Action Controls */}
         <div className="flex items-center gap-3">
-          {/* Cashier Icon */}
-          <Link href="/pos" className="p-2.5 text-[#8e827b] hover:text-[#C86A50] hover:bg-[#FAF8F5] rounded-xl transition-all relative">
-            <User size={18} />
-          </Link>
-
-          {/* Orders Compass */}
-          <Link href="/orders" className="p-2.5 text-[#8e827b] hover:text-[#C86A50] hover:bg-[#FAF8F5] rounded-xl transition-all relative">
-            <Compass size={18} />
-          </Link>
-
-          {/* New Order */}
-          <Link href="/pos" className="p-2.5 text-[#8e827b] hover:text-[#C86A50] hover:bg-[#FAF8F5] rounded-xl transition-all relative">
-            <PlusSquare size={18} />
-          </Link>
-
-          {/* User Profile Avatar */}
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#C86A50] to-[#B3563d] flex items-center justify-center font-bold text-sm text-white select-none">
+          <Link href="/pos" className="p-2.5 rounded-xl transition-all" style={{ color: "var(--text-on-dark-muted)" }}><User size={18} /></Link>
+          <Link href="/orders" className="p-2.5 rounded-xl transition-all" style={{ color: "var(--text-on-dark-muted)" }}><Compass size={18} /></Link>
+          <Link href="/pos" className="p-2.5 rounded-xl transition-all" style={{ color: "var(--text-on-dark-muted)" }}><PlusSquare size={18} /></Link>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm select-none" style={{ background: "var(--accent-500)", color: "var(--espresso-900)" }}>
             {user?.name?.charAt(0).toUpperCase() || "U"}
           </div>
-
-          {/* Hamburger Dropdown Menu (Strictly ordered menu) */}
           <div className="relative">
-            <button 
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="p-2.5 text-[#8e827b] hover:text-[#2C2623] hover:bg-[#FAF8F5] rounded-xl transition-all"
-            >
+            <button onClick={() => setMenuOpen(!menuOpen)} className="p-2.5 rounded-xl transition-all" style={{ color: "var(--text-on-dark-muted)" }}>
               <Menu size={20} />
             </button>
-
-            {menuOpen && (
-              <HamburgerMenu onClose={() => setMenuOpen(false)} />
-            )}
+            {menuOpen && (<HamburgerMenu onClose={() => setMenuOpen(false)} />)}
           </div>
         </div>
       </header>
@@ -380,16 +357,25 @@ export default function KDSPage() {
             <button
               key={tab.id}
               onClick={() => { setActiveTab(tab.id); setCurrentPage(1); }}
-              className={`px-4 py-2 rounded-full border text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
-                activeTab === tab.id
-                  ? "bg-[#C86A50] text-white border-[#C86A50] shadow-sm"
-                  : "bg-[#FAF8F5] text-[#8e827b] border-[#E6E1DA] hover:border-[#C86A50]/50"
-              }`}
+              className="px-4 py-2 text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2"
+              style={{
+                borderRadius: "var(--radius-full)",
+                border: activeTab === tab.id ? "2px solid var(--accent-500)" : "1px solid var(--border-strong)",
+                background: activeTab === tab.id ? "var(--accent-50)" : "var(--bg-subtle)",
+                color: activeTab === tab.id ? "var(--accent-700)" : "var(--text-secondary)",
+              }}
             >
-              <span>{tab.label}</span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                activeTab === tab.id ? "bg-white/20 text-white" : "bg-[#EFECE7] text-[#2C2623]"
-              }`}>
+              <span style={{ fontFamily: "var(--font-display)" }}>{tab.label}</span>
+              <span
+                className="px-2 py-0.5 font-mono-num"
+                style={{
+                  borderRadius: "var(--radius-full)",
+                  fontSize: "var(--text-xs)",
+                  fontWeight: 700,
+                  background: activeTab === tab.id ? "var(--accent-100)" : "var(--bg-subtle)",
+                  color: activeTab === tab.id ? "var(--accent-700)" : "var(--text-secondary)",
+                }}
+              >
                 {tabCounts[tab.id]}
               </span>
             </button>
@@ -518,12 +504,14 @@ export default function KDSPage() {
             ) : (
               paginatedTickets.map(ticket => {
                 
-                // Color mapping for ticket status border/badges
-                const statusStyles = {
-                  TO_COOK: { border: "border-l-4 border-l-red-500", text: "text-red-600 bg-red-50 border-red-100", label: "To Cook" },
-                  PREPARING: { border: "border-l-4 border-l-amber-500", text: "text-amber-600 bg-amber-50 border-amber-100", label: "Preparing" },
-                  COMPLETED: { border: "border-l-4 border-l-green-500", text: "text-green-600 bg-green-50 border-green-100", label: "Completed" }
+                // Token-based status top border color
+                const statusTopBorder = {
+                  TO_COOK: "var(--kds-to-cook)",
+                  PREPARING: "var(--kds-preparing)",
+                  COMPLETED: "var(--kds-completed)",
                 }[ticket.status];
+                const statusLabel = { TO_COOK: "To Cook", PREPARING: "Preparing", COMPLETED: "Completed" }[ticket.status];
+                const statusBadgeCls = { TO_COOK: "status-badge-cancelled", PREPARING: "status-badge-active", COMPLETED: "status-badge-paid" }[ticket.status];
 
                 // Calculate time elapsed
                 const elapsedMinutes = Math.floor(
@@ -533,22 +521,27 @@ export default function KDSPage() {
                 return (
                   <div 
                     key={ticket.id} 
-                    className={`w-80 bg-white rounded-2xl border border-[#EFECE7] ${statusStyles.border} shadow-sm flex flex-col justify-between overflow-hidden shrink-0 hover:shadow-md transition-all duration-200 animate-in fade-in duration-300`}
+                    className="w-80 rounded-xl flex flex-col justify-between overflow-hidden shrink-0 hover:shadow-md transition-all duration-200 animate-in fade-in duration-300"
+                    style={{
+                      background: "var(--bg-surface)",
+                      border: "1px solid var(--border)",
+                      borderTop: `4px solid ${statusTopBorder}`,
+                    }}
                   >
                     {/* Header */}
                     <div className="p-4 border-b border-[#EFECE7] bg-[#FAF8F5]/50 flex justify-between items-center">
                       <div>
-                        <h3 className="font-black text-[#2C2623] text-lg">
+                        <h3 className="font-mono-num font-bold" style={{ fontSize: "var(--text-lg)", color: "var(--text-primary)" }}>
                           #{ticket.orderNumber}
                         </h3>
-                        <div className="flex items-center gap-1 text-[10px] text-[#8e827b] font-bold mt-0.5">
+                        <div className="flex items-center gap-1 mt-0.5" style={{ fontSize: "var(--text-xs)", color: "var(--text-tertiary)" }}>
                           <Clock size={11} />
                           <span suppressHydrationWarning>{formatTime(ticket.createdAt)} ({elapsedMinutes}m ago)</span>
                         </div>
                       </div>
 
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase border ${statusStyles.text}`}>
-                        {statusStyles.label}
+                      <span className={`status-badge ${statusBadgeCls}`}>
+                        {statusLabel}
                       </span>
                     </div>
 
@@ -576,15 +569,15 @@ export default function KDSPage() {
                     </div>
 
                     {/* Bottom Action Footer (Advance Ticket State) */}
-                    <div className="p-4 bg-[#FAF8F5] border-t border-[#EFECE7]">
+                    <div className="p-4" style={{ background: "var(--bg-subtle)", borderTop: "1px solid var(--border)" }}>
                       {ticket.status === "COMPLETED" ? (
-                        <div className="w-full text-center text-xs font-bold text-green-600 flex items-center justify-center gap-1.5 py-2">
+                        <div className="w-full text-center text-xs font-bold flex items-center justify-center gap-1.5 py-2" style={{ color: "var(--status-success)" }}>
                           <CheckCircle2 size={14} /> Completed
                         </div>
                       ) : (
                         <button
                           onClick={() => handleAdvanceTicketStatus(ticket.id)}
-                          className="w-full bg-[#C86A50] hover:bg-[#b3563d] text-white font-extrabold py-2.5 rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
+                          className="btn-primary w-full justify-center"
                         >
                           {ticket.status === "TO_COOK" ? "Start Preparing" : "Finish Ticket"}
                         </button>

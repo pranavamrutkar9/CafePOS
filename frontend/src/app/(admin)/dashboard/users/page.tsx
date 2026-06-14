@@ -137,11 +137,11 @@ export default function UsersPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-cafe-text">Users & Employees</h1>
-          <p className="text-xs text-[#8E827B] mt-0.5">Manage terminal roles, passwords, and statuses</p>
+          <p style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)", marginTop: 2 }}>Manage terminal roles, passwords, and statuses</p>
         </div>
         <button 
           onClick={() => { resetForm(); setIsModalOpen(true); }}
-          className="btn-terracotta px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 cursor-pointer text-xs"
+          className="btn-primary"
         >
           <Plus size={16} />
           Add User
@@ -185,9 +185,7 @@ export default function UsersPage() {
                     </select>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold ${
-                      employee.disabled ? "bg-[#FAF8F5] border border-[#EFECE7] text-[#8E827B] opacity-70" : "badge-sage"
-                    }`}>
+                    <span className={`status-badge ${employee.disabled ? "status-badge-disabled" : "status-badge-enabled"}`}>
                       {employee.disabled ? "Archived" : "Active"}
                     </span>
                   </td>
@@ -297,7 +295,7 @@ export default function UsersPage() {
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 py-2.5 btn-terracotta rounded-xl font-medium cursor-pointer text-xs"
+                  className="btn-primary flex-1 justify-center"
                 >
                   Save User
                 </button>
@@ -360,7 +358,7 @@ export default function UsersPage() {
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 py-2.5 btn-terracotta rounded-xl font-medium cursor-pointer text-xs"
+                  className="btn-primary flex-1 justify-center"
                 >
                   Update Password
                 </button>

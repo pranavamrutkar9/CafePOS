@@ -114,7 +114,7 @@ export default function FloorsPage() {
         <h1 className="text-2xl font-bold text-cafe-text">Floor Plan</h1>
         <button 
           onClick={() => setIsFloorModalOpen(true)}
-          className="btn-terracotta px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 cursor-pointer"
+          className="btn-primary"
         >
           <Plus size={20} />
           Add Floor
@@ -239,7 +239,7 @@ export default function FloorsPage() {
               <button 
                 onClick={handleCreateTable}
                 disabled={submitting}
-                className="flex-1 py-2.5 btn-terracotta rounded-xl font-medium cursor-pointer disabled:opacity-70"
+                className="btn-primary flex-1 justify-center"
               >
                 {submitting ? "Saving..." : "Save Table"}
               </button>
@@ -283,7 +283,7 @@ export default function FloorsPage() {
               <button 
                 onClick={handleCreateFloor}
                 disabled={submitting}
-                className="flex-1 py-2.5 btn-terracotta rounded-xl font-medium cursor-pointer disabled:opacity-70"
+                className="btn-primary flex-1 justify-center"
               >
                 {submitting ? "Saving..." : "Save Floor"}
               </button>

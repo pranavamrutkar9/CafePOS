@@ -214,7 +214,7 @@ export default function PromotionsPage() {
         <h1 className="text-2xl font-bold text-cafe-text">Coupons & Promotions</h1>
         <button 
           onClick={() => activeTab === 'coupons' ? setIsCouponModalOpen(true) : setIsPromoModalOpen(true)}
-          className="btn-terracotta px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 cursor-pointer shadow-sm active:scale-98"
+          className="btn-primary"
         >
           <Plus size={20} />
           {activeTab === 'coupons' ? 'Add Coupon' : 'Add Promotion'}
@@ -465,7 +465,7 @@ export default function PromotionsPage() {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="flex-1 py-2.5 btn-terracotta rounded-xl font-medium cursor-pointer active:scale-98">
+                <button type="submit" className="btn-primary flex-1 justify-center">
                   Save Coupon
                 </button>
               </div>
@@ -616,7 +616,7 @@ export default function PromotionsPage() {
                 >
                   Cancel
                 </button>
-                <button type="submit" className="flex-1 py-2.5 btn-terracotta rounded-xl font-medium cursor-pointer active:scale-98">
+                <button type="submit" className="btn-primary flex-1 justify-center">
                   Save Promotion
                 </button>
               </div>

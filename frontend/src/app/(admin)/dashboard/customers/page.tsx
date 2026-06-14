@@ -147,10 +147,10 @@ export default function CustomersPage() {
               setFormPhone("");
               setErrorMsg("");
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-[#C86A50] hover:bg-[#b3563d] text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+            className="btn-primary"
           >
             <Plus size={16} />
-            New
+            New Customer
           </button>
 
           {isCreateOpen && (
@@ -322,7 +322,7 @@ export default function CustomersPage() {
                           required
                           value={formName}
                           onChange={(e) => setFormName(e.target.value)}
-                          className="w-full bg-[#FAF8F5] border border-[#E6E1DA] rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#C86A50] text-[#2C2623] font-medium"
+                          className="form-input"
                         />
                       </div>
 

@@ -73,7 +73,7 @@ export default function ReceiptModal({ isOpen, onClose, orderNumber, amount }: R
 
           <button 
             onClick={onClose}
-            className="mt-2 flex items-center justify-center gap-2 w-full py-3.5 btn-terracotta text-white rounded-xl font-bold text-sm transition-colors shadow-md cursor-pointer"
+            className="btn-primary w-full justify-center"
           >
             New Order
           </button>
